@@ -22,10 +22,7 @@ export class Card {
     return this.#isFaceUp;
   }
 
-  set isFaceUp(newState: boolean) {
-    this.#isFaceUp = newState;
-  }
-
+ 
   //Alternar carta
   toggleFace(): void {
    this.#isFaceUp = !this.#isFaceUp;
@@ -35,9 +32,8 @@ export class Card {
   setCardImage(id:string) {
     const card = document.getElementById(id);
     let imagePath = "../public/img/cartas_poker/back.png";
-    if(this.#isFaceUp) imagePath = "../public/img/cartas_poker/AS.png"
-    // ESTO VA MAS ADELANTE
-    // if(this.#isFaceUp) imagePath = `../public/img/cartas_poker/${this.#rank}${this.#suit[0].toUpperCase()}.png`;
+    // if(this.#isFaceUp) imagePath = "../public/img/cartas_poker/AS.png"
+    if(this.#isFaceUp) imagePath = `../public/img/cartas_poker/${this.#rank}${this.#suit[0].toUpperCase()}.png`;
     card.setAttribute("src", imagePath);
   }
 
