@@ -1,0 +1,9 @@
+body {
+  background-color: #006400;
+}
+
+.deck-card {
+  margin-top: 35px;
+  margin-left: 25px;
+   width: 150px;
+}
