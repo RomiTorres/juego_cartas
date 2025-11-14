@@ -1,4 +1,3 @@
-
 import { Card } from "./Card.js";
 
 export class Board {
@@ -14,6 +13,7 @@ export class Board {
       this.#visibleCards.set(i, deckCopy[randomNumberCard]);
       deckCopy.splice(randomNumberCard, 1);
     }
+    
   }
 
   get visibleCards():Map<number, Card> {
@@ -36,7 +36,7 @@ export class Board {
     }
   }
 
-    renderBoard() {
+  renderBoard() {
     this.generateVisibleCardsHTML();
     const boardCards = document.getElementsByClassName("deck-card");
     for(let i = 1; i <= boardCards.length; i++) {

@@ -2,8 +2,31 @@ body {
   background-color: #006400;
 }
 
-.deck-card {
+.deck-card, .selected-cards, .over {
   margin-top: 35px;
   margin-left: 25px;
    width: 150px;
+}
+
+#visible-cards {
+  display: flex;
+  flex-flow: row;
+}
+
+.selected-cards {
+  border: 0.2em dashed white;
+  height: 200px;
+  background-color: transparent;
+}
+
+.dragging {
+  opacity: 0.6;
+  transform: scale(0.98); 
+  cursor: grabbing;
+}
+
+.over {
+  height: 200px;
+  border:0.2em dashed coral;
+  background: rgba(30, 144, 255, 0.06);
 }

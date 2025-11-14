@@ -3,14 +3,13 @@ export class Card {
   #suit: string;
   #isFaceUp: boolean;
 
-
   constructor(rank:string, suit: string) {
     this.#rank = rank;
     this.#suit = suit;
     this.#isFaceUp = false;
   }
 
-   get rank(): string {
+  get rank(): string {
     return this.#rank;
   }
 
@@ -22,31 +21,30 @@ export class Card {
     return this.#isFaceUp;
   }
 
- 
-  //Alternar carta
+
   toggleFace(): void {
    this.#isFaceUp = !this.#isFaceUp;
   }
 
-  // Establecer imagen de tarjeta
   setCardImage(id:string) {
     const card = document.getElementById(id);
     let imagePath = "../public/img/cartas_poker/back.png";
-    // if(this.#isFaceUp) imagePath = "../public/img/cartas_poker/AS.png"
     if(this.#isFaceUp) imagePath = `../public/img/cartas_poker/${this.#rank}${this.#suit[0].toUpperCase()}.png`;
     card.setAttribute("src", imagePath);
   }
 
-  //  spinCard():void {
+  // spinCard():void {
     
   //   const currentLetter = document.getElementById("reverse-letter");
   //   currentLetter.addEventListener("click", () => {
   //     currentLetter.remove();
   //     console.log(currentLetter, 'soy current')
   //   const newCard = document.createElement("img");
-  //   newCard.src = './img/cartas_poker/AS.png';
+  //   newCard.src = './img/AS.png';
   //   const container = document.querySelector("p");
   //   container.appendChild(newCard);
   
   // })}
+
+
 }
