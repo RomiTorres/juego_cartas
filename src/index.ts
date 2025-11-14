@@ -1,9 +1,7 @@
 import { Board } from "./Board.js";
 import { Card } from "./Card.js";
 
-// const cardInstance = new Card();
 
-// cardInstance.spinCard();
 
 
 const card1 = new Card("A", "spades"); // spades, hearts, diamonds, clubs
