@@ -1,12 +1,15 @@
 import { Board } from "./Board.js";
 import { Card } from "./Card.js";
-// const cardInstance = new Card();
-// cardInstance.spinCard();
+import { Deck } from "./Deck.js";
 const card1 = new Card("A", "spades"); // spades, hearts, diamonds, clubs
 const card2 = new Card("K", "hearts");
 const card3 = new Card("3", "clubs");
 const card4 = new Card("9", "diamonds");
-const deck = [card1, card2, card3, card4];
+const suit = ["spades", "hearts", "diamonds", "clubs"];
+const rank = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+const deckRandom = new Deck(suit, rank);
+generateDeck(suit, rank);
+// const deck = [card1, card2, card3, card4];
 const board = new Board(deck, 4);
 board.renderBoard();
 const selectedCard = document.getElementById('selected-card');
@@ -55,6 +58,9 @@ selectedCard.addEventListener('drop', (e) => {
     selectedCard.innerHTML = '';
     selectedCard.appendChild(dragged);
 });
+function generateDeck(suit, rank) {
+    throw new Error("Function not implemented.");
+}
 // document.getElementById("card-1").addEventListener("click", (e) => {
 //   if( board.visibleCards.get(1) instanceof Card) {
 //   board.visibleCards.get(1).toggleFace();
