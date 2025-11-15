@@ -25,7 +25,7 @@ export class Board {
     for(let i = 1; i <= this.#numberOfVisbleCards; i++) {
       const paragraph = document.createElement("p");
       const img = document.createElement("img");
-      img.setAttribute("src", "../public/img/cartas_poker/back.png");
+      img.setAttribute("src", "img/cartas_poker/back.png");
       img.setAttribute("alt", "reverso de carta de poker");
       img.classList.add("deck-card");
       img.setAttribute("draggable", "true");

@@ -5,20 +5,14 @@ import { Deck } from "./Deck.js";
 
 
 
-const card1 = new Card("A", "spades"); // spades, hearts, diamonds, clubs
-const card2 = new Card("K", "hearts")
-const card3 = new Card("3", "clubs");
-const card4 = new Card("9", "diamonds");
-
 const suit = ["spades", "hearts", "diamonds", "clubs"];
 const rank = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 
-const deckRandom = new Deck(suit, rank);
-generateDeck(suit, rank)
-// const deck = [card1, card2, card3, card4];
+const deckInstance = new Deck(suit, rank);
+const deck = deckInstance.generateDeck(suit, rank);
 const board = new Board(deck, 4);
 board.renderBoard();
-const selectedCard: HTMLElement = document.getElementById('selected-card')
+const selectedCard = document.getElementById('selected-card');
 
 const visibleCards: HTMLCollection =  document.getElementsByClassName("deck-card");
 let key: number;
@@ -51,61 +45,40 @@ for(let i = 0; i < visibleCards.length; i++) {
 
 }
 
-selectedCard.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  selectedCard.classList.replace('selected-cards', 'over');
-})
+if (selectedCard) {
+  selectedCard.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    selectedCard.classList.replace('selected-cards', 'over');
+  })
 
-selectedCard.addEventListener('dragleave', () => {
-  selectedCard.classList.replace('over', 'selected-cards');
-})
-
-
-selectedCard.addEventListener('drop', (e) => {
-  e.preventDefault();
-  selectedCard.classList.remove('over');
-
-  const id = e.dataTransfer.getData('text/plain');
-  const dragged = document.getElementById(id);
-
-  if(!dragged) return ;
-
-  selectedCard.innerHTML = '';
-  selectedCard.appendChild(dragged);
-
-  
-
-})
+  selectedCard.addEventListener('dragleave', () => {
+    selectedCard.classList.replace('over', 'selected-cards');
+  })
 
 
+  selectedCard.addEventListener('drop', (e) => {
+    e.preventDefault();
+    selectedCard.classList.remove('over');
 
+    const id = e.dataTransfer.getData('text/plain');
+    const dragged = document.getElementById(id);
 
+    if(!dragged) return ;
 
+    selectedCard.innerHTML = '';
+    selectedCard.appendChild(dragged);
 
+  })
 
-
-
-function generateDeck(suit: string[], rank: string[]) {
-  throw new Error("Function not implemented.");
+} else {
+  console.warn('Elemento #selected-card no encontrado en el DOM. Event listeners no asignados.');
 }
-// document.getElementById("card-1").addEventListener("click", (e) => {
-//   if( board.visibleCards.get(1) instanceof Card) {
-//   board.visibleCards.get(1).toggleFace();
-//   if(e.target instanceof HTMLElement)  board.visibleCards.get(1).setCardImage(e.target.getAttribute("id"));
-//   }
-// });
 
-// document.getElementById("card-2").addEventListener("click", (e) => {
-//    if( board.visibleCards.get(2) instanceof Card) {
-//   board.visibleCards.get(2).toggleFace();
-//   if(e.target instanceof HTMLElement)  board.visibleCards.get(2).setCardImage(e.target.getAttribute("id"));
-//    }
-// });
 
-// document.getElementById("card-3").addEventListener("click", (e) => {
-//    if( board.visibleCards.get(3) instanceof Card) {
-//   board.visibleCards.get(3).toggleFace();
-//   if(e.target instanceof HTMLElement)  board.visibleCards.get(3).setCardImage(e.target.getAttribute("id"));
-//    }
-// });
+
+
+
+
+
+
