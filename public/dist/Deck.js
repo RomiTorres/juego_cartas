@@ -1,28 +1,28 @@
 import { Card } from "./Card.js";
 export class Deck {
+    #cards = [];
     #suits = ["spades", "hearts", "diamonds", "clubs"];
-    #rank = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-    constructor(suits, rank) {
-        this.#suits = suits;
-        this.#rank = rank;
+    #ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+    constructor() {
+        this.#cards = this.#generateDeck();
     }
-    get suits() {
-        return this.#suits;
-    }
-    get rank() {
-        return this.#rank;
-    }
-    generateDeck(suits, rank) {
-        let deckRandom = [];
-        for (let i = 0; i < suits.length; i++) {
-            for (let j = 0; j < rank.length; j++) {
-                const card = new Card(rank[j], suits[i]);
-                deckRandom.push(card);
-                console.log(card);
+    #generateDeck() {
+        let deck = [];
+        for (const suit of this.#suits) {
+            for (const rank of this.#ranks) {
+                deck.push(new Card(rank, suit));
             }
         }
-        console.log(deckRandom.length);
-        return deckRandom;
+        return deck;
+    }
+    shuffle() {
+        for (let i = this.#cards.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.#cards[i], this.#cards[j]] = [this.#cards[j], this.#cards[i]];
+        }
+    }
+    drawCard() {
+        return this.#cards.pop();
     }
 }
 //# sourceMappingURL=Deck.js.map

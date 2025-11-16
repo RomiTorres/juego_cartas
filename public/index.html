@@ -1,13 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="./dist/index.js" type="module"></script>
-  <link rel="stylesheet" href="./styles/style.css">
-  <title>Document</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <script src="dist/index.js" type="module" defer></script>
 </head>
 <body>
-  <section id="visible-cards"></section>
-  <section id="selected-card" class="selected-cards dropzone-card" aria-dropeffect="none" aria-label="Objetivo de la carta"></section></body>
+    <header>
+        <h1>Blackjack</h1>
+    </header>
+
+    <main id="game-board">
+        <section id="dealer-area">
+            <h2>Crupier: <span id="dealer-score">0</span></h2>
+            <div id="dealer-cards" class="card-container">
+            </div>
+        </section>
+
+        <section id="results-area">
+            <p id="game-message"></p>
+        </section>
+
+        <section id="player-area">
+            <h2>Jugador: <span id="player-score">0</span></h2>
+            <div id="player-cards" class="card-container">
+            </div>
+        </section>
+
+        <section id="controls">
+            <button id="new-game-button">Nuevo Juego</button>
+            <button id="hit-button" disabled>Pedir Carta</button>
+            <button id="stand-button" disabled>Plantarse</button>
+        </section>
+    </main>
+</body>
 </html>

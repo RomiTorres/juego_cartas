@@ -28,9 +28,27 @@ export class Card {
 
   setCardImage(id:string) {
     const card = document.getElementById(id);
-    let imagePath = "img/cartas_poker/back.png";
-    if(this.#isFaceUp) imagePath = `img/cartas_poker/${this.#rank}${this.#suit[0].toUpperCase()}.png`;
-    card.setAttribute("src", imagePath);
+    if (card) {
+      card.setAttribute("src", this.getImagePath());
+    }
   }
 
+  getImagePath(): string {
+    if (!this.#isFaceUp) {
+      return `img/cartas_poker/back.png`;
+    }
+    const suitChar = this.#suit.charAt(0).toUpperCase();
+    const rankChar = this.#rank === '10' ? '0' : this.#rank;
+    return `img/cartas_poker/${rankChar}${suitChar}.png`;
   }
+
+  getValue(): number {
+    if (this.#rank === 'A') {
+      return 11;
+    }
+    if (['K', 'Q', 'J'].includes(this.#rank)) {
+      return 10;
+    }
+    return parseInt(this.#rank);
+  }
+}

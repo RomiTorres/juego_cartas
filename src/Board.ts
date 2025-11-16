@@ -1,48 +1,54 @@
 import { Card } from "./Card.js";
 
 export class Board {
-  #numberOfVisbleCards: number;
-  #visibleCards: Map<number, Card> 
+  private dealerCards: HTMLElement;
+  private playerCards: HTMLElement;
+  private dealerScore: HTMLElement;
+  private playerScore: HTMLElement;
+  private message: HTMLElement;
 
-  constructor(deck:Array<Card>, numberOfVisbleCards: number ) {
-    this.#numberOfVisbleCards = numberOfVisbleCards;
-    this.#visibleCards = new Map<number, Card> 
-    const deckCopy: Array<Card> = deck.map((card) => {return new Card(card.rank, card.suit)});
-    for(let i = 1; i <= numberOfVisbleCards; i++) {
-      const randomNumberCard = Math.floor(Math.random() * deckCopy.length);
-      this.#visibleCards.set(i, deckCopy[randomNumberCard]);
-      deckCopy.splice(randomNumberCard, 1);
-    }
-    
+  constructor() {
+    this.dealerCards = document.getElementById('dealer-cards')!;
+    this.playerCards = document.getElementById('player-cards')!;
+    this.dealerScore = document.getElementById('dealer-score')!;
+    this.playerScore = document.getElementById('player-score')!;
+    this.message = document.getElementById('game-message')!;
   }
 
-  get visibleCards():Map<number, Card> {
-    return this.#visibleCards;
+  clearBoard(): void {
+    this.dealerCards.innerHTML = '';
+    this.playerCards.innerHTML = '';
+    this.message.textContent = '';
+    this.dealerScore.textContent = '0';
+    this.playerScore.textContent = '0';
   }
 
-  generateVisibleCardsHTML() {
-    const visibleCards = document.getElementById("visible-cards");
-    for(let i = 1; i <= this.#numberOfVisbleCards; i++) {
-      const paragraph = document.createElement("p");
-      const img = document.createElement("img");
-      img.setAttribute("src", "img/cartas_poker/back.png");
-      img.setAttribute("alt", "reverso de carta de poker");
-      img.classList.add("deck-card");
-      img.setAttribute("draggable", "true");
-      img.setAttribute("aria-grabbed", "false");
-      img.id = `card-${i}`;
-      paragraph.appendChild(img);
-      visibleCards.insertAdjacentElement("beforeend", paragraph);
+  renderCard(card: Card, isPlayer: boolean): void {
+    const cardImg = document.createElement('img');
+    cardImg.src = card.getImagePath();
+    cardImg.alt = card.rank + card.suit;
+    cardImg.classList.add('card');
+
+    if (isPlayer) {
+      this.playerCards.appendChild(cardImg);
+    } else {
+      this.dealerCards.appendChild(cardImg);
     }
   }
 
-  renderBoard() {
-    this.generateVisibleCardsHTML();
-    const boardCards = document.getElementsByClassName("deck-card");
-    for(let i = 1; i <= boardCards.length; i++) {
-      if( this.#visibleCards.get(i) instanceof Card){
-          this.#visibleCards.get(i).setCardImage(`card-${i}`);
-      } 
-    }
+  renderHands(playerCards: Card[], dealerCards: Card[]): void {
+    this.playerCards.innerHTML = '';
+    this.dealerCards.innerHTML = '';
+    playerCards.forEach(card => this.renderCard(card, true));
+    dealerCards.forEach(card => this.renderCard(card, false));
+  }
+
+  updateScores(playerScore: number, dealerScore: number): void {
+    this.playerScore.textContent = playerScore.toString();
+    this.dealerScore.textContent = dealerScore.toString();
+  }
+
+  showMessage(message: string): void {
+    this.message.textContent = message;
   }
 }
