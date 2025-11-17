@@ -10,10 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const standButton = document.getElementById('stand-button') as HTMLButtonElement;
 
   function updateUI() {
+    // Renderizar cartas y actualizar puntuaciones
     board.renderHands(game.player.cards, game.dealer.cards);
     board.updateScores(game.player.score, game.dealer.score);
 
-    if (!game.isGameInProgress()) {
+    // Ahora usamos el getter como propiedad
+    if (!game.isGameInProgress) {
       const winner = game.getWinner();
       let message = '';
       if (winner === 'player') {
@@ -52,11 +54,3 @@ document.addEventListener('DOMContentLoaded', () => {
   hitButton.disabled = true;
   standButton.disabled = true;
 });
-
-
-
-
-
-
-
-

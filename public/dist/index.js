@@ -7,9 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const hitButton = document.getElementById('hit-button');
     const standButton = document.getElementById('stand-button');
     function updateUI() {
+        // Renderizar cartas y actualizar puntuaciones
         board.renderHands(game.player.cards, game.dealer.cards);
         board.updateScores(game.player.score, game.dealer.score);
-        if (!game.isGameInProgress()) {
+        // Ahora usamos el getter como propiedad
+        if (!game.isGameInProgress) {
             const winner = game.getWinner();
             let message = '';
             if (winner === 'player') {
