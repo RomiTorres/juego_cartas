@@ -54,6 +54,19 @@ export class Game {
             return;
         this.dealerTurn();
     }
+    // private dealerTurn(): void {
+    //   // Voltear la carta oculta del crupier
+    //   this.dealer.cards.forEach(card => {
+    //       if(!card.isFaceUp) card.toggleFace();
+    //   });
+    //   this.updateScores();
+    //   // El crupier pide cartas hasta tener 17 o más
+    //   while (this.dealer.score < 17) {
+    //     this.dealer.cards.push(this.deck.drawCard()!);
+    //     this.updateScores();
+    //   }
+    //   this.endGame();
+    // }
     dealerTurn() {
         // Voltear la carta oculta del crupier
         this.dealer.cards.forEach(card => {
@@ -63,7 +76,9 @@ export class Game {
         this.updateScores();
         // El crupier pide cartas hasta tener 17 o más
         while (this.dealer.score < 17) {
-            this.dealer.cards.push(this.deck.drawCard());
+            const card = this.deck.drawCard();
+            card.toggleFace(); // 👈 IMPORTANTE: mostrar la carta
+            this.dealer.cards.push(card);
             this.updateScores();
         }
         this.endGame();
