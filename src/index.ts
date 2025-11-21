@@ -6,51 +6,37 @@ document.addEventListener('DOMContentLoaded', () => {
   const board = new Board();
 
   const newGameButton = document.getElementById('new-game-button')!;
-  const hitButton = document.getElementById('hit-button') as HTMLButtonElement;
-  const standButton = document.getElementById('stand-button') as HTMLButtonElement;
 
-  function updateUI() {
-    // Renderizar cartas y actualizar puntuaciones
-    board.renderHands(game.player.cards, game.dealer.cards);
-    board.updateScores(game.player.score, game.dealer.score);
-
-    // Ahora usamos el getter como propiedad
-    if (!game.isGameInProgress) {
-      const winner = game.getWinner();
-      let message = '';
-      if (winner === 'player') {
-        message = '¡El jugador gana!';
-      } else if (winner === 'dealer') {
-        message = '¡El crupier gana!';
-      } else {
-        message = '¡Empate!';
+  board.setActionHandlers(
+    (index) => {
+      if (index === game.currentTurnIndex) {
+        game.hit();
+        updateUI();
       }
-      board.showMessage(message);
-      hitButton.disabled = true;
-      standButton.disabled = true;
+    },
+    (index) => {
+      if (index === game.currentTurnIndex) {
+        game.stand();
+        updateUI();
+      }
+    }
+  );
+
+  function updateUI(): void {
+    board.renderHands(game.playerList, game.dealerInfo, game.currentTurnIndex);
+
+    if (!game.isGameInProgress) {
+      const results = game.getWinners();
+      if (results) board.showResults(results);
+    } else {
+      const current = game.currentPlayer;
+      board.showMessage(`Turno de: ${current?.id}`);
     }
   }
 
   newGameButton.addEventListener('click', () => {
-    game.newGame();
+    game.newGame(["Jugador 1", "Jugador 2"]); 
     board.clearBoard();
     updateUI();
-    hitButton.disabled = false;
-    standButton.disabled = false;
-    board.showMessage('');
   });
-
-  hitButton.addEventListener('click', () => {
-    game.hit();
-    updateUI();
-  });
-
-  standButton.addEventListener('click', () => {
-    game.stand();
-    updateUI();
-  });
-
-  // Iniciar deshabilitado hasta que se presione "Nuevo Juego"
-  hitButton.disabled = true;
-  standButton.disabled = true;
 });

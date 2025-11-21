@@ -1,66 +1,95 @@
 import { Deck } from "./Deck.js";
 export class Game {
-    // Campos privados nativos
     #deck;
-    #player;
+    #players;
     #dealer;
+    #currentTurn;
     #gameInProgress;
     constructor() {
         this.#deck = new Deck();
-        this.#player = { cards: [], score: 0 };
-        this.#dealer = { cards: [], score: 0 };
+        this.#players = [];
+        this.#dealer = { id: "Dealer", cards: [], score: 0, isDealer: true };
+        this.#currentTurn = 0;
         this.#gameInProgress = false;
     }
-    // --- Getters y Setters ---
-    get player() {
-        return this.#player;
+    get playerList() {
+        return this.#players;
     }
-    get dealer() {
+    get dealerInfo() {
         return this.#dealer;
     }
     get isGameInProgress() {
         return this.#gameInProgress;
     }
-    // --- Métodos públicos ---
-    newGame() {
+    get currentPlayer() {
+        return this.#players[this.#currentTurn] || null;
+    }
+    get currentTurnIndex() {
+        return this.#currentTurn;
+    }
+    newGame(playerIds = ["Jugador 1", "Jugador 2"]) {
         this.#deck = new Deck();
         this.#deck.shuffle();
-        this.#player = { cards: [], score: 0 };
-        this.#dealer = { cards: [], score: 0 };
-        // Reparto inicial jugador
-        const playerCard1 = this.#deck.drawCard();
-        playerCard1.toggleFace();
-        this.#player.cards.push(playerCard1);
-        const playerCard2 = this.#deck.drawCard();
-        playerCard2.toggleFace();
-        this.#player.cards.push(playerCard2);
-        // Reparto crupier
-        const dealerFirstCard = this.#deck.drawCard();
-        dealerFirstCard.toggleFace();
-        this.#dealer.cards.push(dealerFirstCard);
-        const dealerSecondCard = this.#deck.drawCard();
-        this.#dealer.cards.push(dealerSecondCard);
+        this.#players = playerIds.map(id => ({
+            id,
+            cards: [],
+            score: 0
+        }));
+        this.#dealer = {
+            id: "Dealer",
+            cards: [],
+            score: 0,
+            isDealer: true
+        };
+        for (const player of this.#players) {
+            const card1 = this.#deck.drawCard();
+            card1.toggleFace();
+            player.cards.push(card1);
+            const card2 = this.#deck.drawCard();
+            card2.toggleFace();
+            player.cards.push(card2);
+        }
+        const dealerCard1 = this.#deck.drawCard();
+        dealerCard1.toggleFace();
+        this.#dealer.cards.push(dealerCard1);
+        const dealerCard2 = this.#deck.drawCard();
+        this.#dealer.cards.push(dealerCard2);
         this.updateScores();
+        this.#currentTurn = 0;
         this.#gameInProgress = true;
-        if (this.#player.score === 21 || this.#dealer.score === 21) {
+        const blackjack = this.#players.some(p => p.score === 21) || this.#dealer.score === 21;
+        if (blackjack) {
             this.endGame();
         }
     }
     hit() {
         if (!this.#gameInProgress)
             return;
+        const currentPlayer = this.#players[this.#currentTurn];
+        if (!currentPlayer)
+            return;
         const card = this.#deck.drawCard();
-        card.toggleFace();
-        this.#player.cards.push(card);
-        this.updateScores();
-        if (this.#player.score > 21) {
+        if (!card) {
             this.endGame();
+            return;
+        }
+        card.toggleFace();
+        currentPlayer.cards.push(card);
+        this.updateScores();
+        if (currentPlayer.score > 21) {
+            this.#nextTurn();
         }
     }
     stand() {
         if (!this.#gameInProgress)
             return;
-        this.dealerTurn();
+        this.#nextTurn();
+    }
+    #nextTurn() {
+        this.#currentTurn++;
+        if (this.#currentTurn >= this.#players.length) {
+            this.dealerTurn();
+        }
     }
     dealerTurn() {
         this.#dealer.cards.forEach(card => {
@@ -70,6 +99,8 @@ export class Game {
         this.updateScores();
         while (this.#dealer.score < 17) {
             const card = this.#deck.drawCard();
+            if (!card)
+                break;
             card.toggleFace();
             this.#dealer.cards.push(card);
             this.updateScores();
@@ -94,30 +125,51 @@ export class Game {
         return score;
     }
     updateScores() {
-        this.#player.score = this.calculateScore(this.#player.cards);
+        for (const player of this.#players) {
+            player.score = this.calculateScore(player.cards);
+        }
         this.#dealer.score = this.calculateScore(this.#dealer.cards);
     }
     endGame() {
         this.#gameInProgress = false;
     }
-    getWinner() {
+    getWinners() {
         if (this.#gameInProgress)
             return null;
-        const playerScore = this.#player.score;
-        const dealerScore = this.calculateScore(this.#dealer.cards);
-        if (playerScore > 21)
-            return 'dealer';
-        if (dealerScore > 21)
-            return 'player';
-        if (playerScore === 21 && this.#player.cards.length === 2 && dealerScore !== 21)
-            return 'player';
-        if (dealerScore === 21 && this.#dealer.cards.length === 2 && playerScore !== 21)
-            return 'dealer';
-        if (playerScore === dealerScore)
-            return 'push';
-        if (playerScore > dealerScore)
-            return 'player';
-        return 'dealer';
+        const dealerScore = this.#dealer.score;
+        const results = [];
+        for (const p of this.#players) {
+            const playerScore = p.score;
+            const playerBlackjack = playerScore === 21 && p.cards.length === 2;
+            const dealerBlackjack = dealerScore === 21 && this.#dealer.cards.length === 2;
+            if (playerScore > 21) {
+                results.push({ id: p.id, result: "dealer" });
+                continue;
+            }
+            if (dealerScore > 21) {
+                results.push({ id: p.id, result: "player" });
+                continue;
+            }
+            if (playerBlackjack && !dealerBlackjack) {
+                results.push({ id: p.id, result: "player" });
+                continue;
+            }
+            if (dealerBlackjack && !playerBlackjack) {
+                results.push({ id: p.id, result: "dealer" });
+                continue;
+            }
+            if (playerScore === dealerScore) {
+                results.push({ id: p.id, result: "push" });
+                continue;
+            }
+            if (playerScore > dealerScore) {
+                results.push({ id: p.id, result: "player" });
+            }
+            else {
+                results.push({ id: p.id, result: "dealer" });
+            }
+        }
+        return results;
     }
 }
 //# sourceMappingURL=Game.js.map
