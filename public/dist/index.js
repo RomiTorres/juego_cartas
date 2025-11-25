@@ -7,18 +7,50 @@ document.addEventListener('DOMContentLoaded', () => {
     // Instancia del gestor de estadísticas persistentes
     // Esto nos permite guardar/cargar balances entre partidas usando localStorage
     const statsManager = new PlayerStatsManager();
+    // IMPORTANTE: reiniciar balances al abrir la página
+    // El usuario pidió que al abrir el juego los jugadores empiecen siempre con $1000,
+    // por lo que limpiamos / reiniciamos los datos persistentes al cargar.
+    const initialPlayerNames = ["Jugador 1", "Jugador 2"];
+    for (const name of initialPlayerNames) {
+        statsManager.resetPlayer(name, 1000); // fuerza balance = 1000
+    }
     // Variable para guardar los balances ANTES de que comience la partida
     // Se usa para calcular correctamente el cambio de saldo en saveGameResults()
     let preGameBalances = {};
     const newGameButton = document.getElementById('new-game-button');
     const clearBetsButton = document.getElementById('clear-bets-button');
+    /**
+     * Handlers para los botones hit y stand.
+     *
+     * Validaciones:
+     * 1. Solo si es el turno del jugador actual
+     * 2. Solo si el jugador tiene una apuesta activa (apuesta es obligatoria)
+     *
+     * Si alguna validación falla, se muestra un mensaje y no se ejecuta la acción.
+     */
     board.setActionHandlers((index) => {
+        // Botón HIT (pedir carta)
         if (index === game.currentTurnIndex) {
+            const player = game.playerList[index];
+            // Verificar que el jugador tenga apuesta activa
+            // (apuesta obligatoria mínimo $10)
+            if (!game.hasActiveBet(player.id)) {
+                board.showMessage(`⛔ ${player.id}: Debes apostar mínimo $10 antes de jugar.`);
+                return;
+            }
             game.hit();
             updateUI();
         }
     }, (index) => {
+        // Botón STAND (plantarse)
         if (index === game.currentTurnIndex) {
+            const player = game.playerList[index];
+            // Verificar que el jugador tenga apuesta activa
+            // (apuesta obligatoria mínimo $10)
+            if (!game.hasActiveBet(player.id)) {
+                board.showMessage(`⛔ ${player.id}: Debes apostar mínimo $10 antes de jugar.`);
+                return;
+            }
             game.stand();
             updateUI();
         }
@@ -33,12 +65,17 @@ document.addEventListener('DOMContentLoaded', () => {
             board.showMessage(`⛔ ${player.id} está en QUIEBRA. Sin dinero para apostar. Reinicia las estadísticas para continuar.`);
             return;
         }
+        // Validar que la apuesta sea al menos $10
+        if (amount < 10) {
+            board.showMessage(`⚠️ Apuesta mínima es $10. Intenta de nuevo.`);
+            return;
+        }
         const ok = game.placeBet(player.id, amount);
         if (!ok) {
-            board.showMessage(`⚠️ Fondos insuficientes para ${player.id}. Intenta con una apuesta menor.`);
+            board.showMessage(`⚠️ ${player.id} no tiene fondos suficientes. Tienes $${game.getPlayerBalance(player.id)}.`);
         }
         else {
-            board.showMessage(`✓ ${player.id} apostó $${amount}`);
+            board.showMessage(`✓ ${player.id} apostó $${amount}. ¡Puedes empezar a jugar!`);
         }
         updateUI();
     });
@@ -262,10 +299,23 @@ document.addEventListener('DOMContentLoaded', () => {
             statsManager.resetPlayer(name, 1000);
             console.log(`✓ ${name} ha sido reiniciado a $1000`);
         }
-        // Mostrar confirmación
+        // Sincronizar el estado en memoria (game) con lo reiniciado en localStorage
+        // para que el cambio sea visible inmediatamente en la UI.
+        for (const name of playerNames) {
+            const stats = statsManager.getOrCreatePlayer(name);
+            const player = game.playerList.find(p => p.id === name);
+            if (player) {
+                player.balance = stats.balance;
+                // también actualizar preGameBalances para evitar cálculos incorrectos
+                preGameBalances[player.id] = stats.balance;
+            }
+        }
+        // Mostrar confirmación y refrescar la UI
         board.showMessage('✓ Estadísticas reiniciadas. Presiona "Nuevo Juego" para comenzar.');
-        // Opcionalmente, ocultar el panel de estadísticas si estaba abierto
+        // Ocultar el panel de estadísticas si estaba abierto
         statsArea.style.display = 'none';
+        // Forzar re-render de la UI para que se vean los nuevos saldos
+        updateUI();
         // Log en consola para verificación
         console.log('Estadísticas reiniciadas para todos los jugadores');
     });

@@ -204,22 +204,37 @@ export class Game {
    * Paso a paso:
    * 1. Valida que el jugador exista
    * 2. Valida que la cantidad sea positiva
-   * 3. Valida que el jugador tenga suficientes fondos
-   * 4. Si todo es válido:
+   * 3. Valida que cumpla la apuesta MÍNIMA de $10
+   * 4. Valida que el jugador tenga suficientes fondos
+   * 5. Si todo es válido:
    *    a. Resta la apuesta del balance del jugador
    *    b. Suma la apuesta al balance del crupier (escrow)
    *    c. Registra la apuesta actual del jugador
-   * 5. Devuelve true si tuvo éxito, false si falló (y el balance no cambia)
+   * 6. Devuelve true si tuvo éxito, false si falló (y el balance no cambia)
    * 
-   * NOTA IMPORTANTE: Los balances pueden crecer más allá de 1000 si el jugador gana.
-   * No hay límite superior de ganancia.
+   * NOTA IMPORTANTE: 
+   * - Los balances pueden crecer más allá de 1000 si el jugador gana.
+   * - Apuesta MÍNIMA: $10 (obligatoria)
+   * - No hay límite superior de ganancia.
+   * 
+   * Códigos de error (implícitos):
+   * - Devuelve false si jugador no existe
+   * - Devuelve false si amount <= 0
+   * - Devuelve false si amount < 10 (mínimo no cumplido)
+   * - Devuelve false si player.balance < amount (fondos insuficientes)
    */
   placeBet(playerId: string, amount: number): boolean {
+    const MIN_BET = 10; // Apuesta mínima requerida
+
     const player = this.#players.find(p => p.id === playerId);
     if (!player) return false;
     
     // Validar cantidad positiva
     if (amount <= 0) return false;
+    
+    // Validar apuesta MÍNIMA de $10
+    // La apuesta es obligatoria y debe ser al menos $10
+    if (amount < MIN_BET) return false;
     
     // Validar fondos suficientes
     // Si no tiene dinero, la apuesta se rechaza y devuelve false
@@ -232,6 +247,22 @@ export class Game {
     this.#dealer.balance += amount;     // el crupier lo tiene en custodia
     
     return true; // apuesta aceptada
+  }
+
+  /**
+   * Verifica si un jugador tiene una apuesta activa para la ronda actual.
+   * 
+   * Paso a paso:
+   * 1. Encuentra el jugador por ID
+   * 2. Devuelve true si player.currentBet > 0 (tiene apuesta)
+   * 3. Devuelve false si currentBet es undefined o <= 0 (sin apuesta)
+   * 
+   * Uso: Antes de permitir hit() o stand(), verificar que haya apuesta.
+   */
+  hasActiveBet(playerId: string): boolean {
+    const player = this.#players.find(p => p.id === playerId);
+    if (!player) return false;
+    return (player.currentBet ?? 0) > 0; // tiene apuesta activa
   }
 
   /**

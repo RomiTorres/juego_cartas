@@ -87,9 +87,19 @@ export class Board {
                     this.#onStand(index);
             });
             // Deshabilitar si no es el turno de este jugador
+            // O si el jugador no tiene apuesta activa (apuesta es obligatoria)
             const isActive = index === currentTurnIndex;
-            hitBtn.disabled = !isActive;
-            standBtn.disabled = !isActive;
+            const hasActiveBet = (player.currentBet ?? 0) > 0;
+            // Los botones se deshabilitan si:
+            // 1. No es el turno del jugador, O
+            // 2. El jugador no tiene apuesta (apuesta es obligatoria)
+            hitBtn.disabled = !isActive || !hasActiveBet;
+            standBtn.disabled = !isActive || !hasActiveBet;
+            // Cambiar el título (title) del botón para mostrar por qué está deshabilitado
+            if (!hasActiveBet) {
+                hitBtn.title = '⚠️ Debes apostar mínimo $10 antes de jugar';
+                standBtn.title = '⚠️ Debes apostar mínimo $10 antes de jugar';
+            }
             actions.appendChild(hitBtn);
             actions.appendChild(standBtn);
             container.appendChild(actions);
@@ -108,10 +118,11 @@ export class Board {
             betControls.appendChild(currentBetEl);
             const betInput = document.createElement('input');
             betInput.type = 'number';
-            betInput.min = '1';
-            betInput.value = '10';
+            betInput.min = '10'; // Mínimo de apuesta: $10
+            betInput.value = '10'; // Valor por defecto: $10
             betInput.id = `bet-input-${index}`;
             betInput.classList.add('bet-input');
+            betInput.placeholder = 'Mín $10'; // Mostrar el mínimo como placeholder
             const betBtn = document.createElement('button');
             betBtn.textContent = 'Apostar';
             betBtn.id = `bet-btn-${index}`;
@@ -143,15 +154,41 @@ export class Board {
         this.#message.textContent = message;
     }
     // Mostrar resultados al final por jugador
+    /**
+     * Muestra los resultados finales de la mano para todos los jugadores.
+     *
+     * Paso a paso:
+     * 1. Para cada jugador, determina su resultado (gana, pierde, empata)
+     * 2. Cuenta cuántos jugadores ganaron contra el dealer
+     * 3. Crea un mensaje mostrando:
+     *    - Resultados individuales de cada jugador (gana/pierde/empata)
+     *    - Estado del dealer (ganador/perdedor según los resultados)
+     * 4. Muestra el mensaje en la UI
+     *
+     * El dealer se considera "ganador" si al menos uno de los jugadores perdió,
+     * y "perdedor" si todos los jugadores ganaron o empataron.
+     */
     showResults(results) {
         const lines = results.map(r => {
             if (r.result === "player")
-                return `${r.id} gana`;
+                return `✓ ${r.id} gana`;
             if (r.result === "dealer")
-                return `${r.id} pierde`;
-            return `${r.id} empata`;
+                return `✗ ${r.id} pierde`;
+            return `= ${r.id} empata`;
         });
-        this.showMessage(lines.join(' | '));
+        // Contar resultados para mostrar estado del dealer
+        const playerWins = results.filter(r => r.result === "player").length;
+        const playerLosses = results.filter(r => r.result === "dealer").length;
+        // Mensaje del dealer: si hay pérdidas, el dealer ganó
+        let dealerStatus = '';
+        if (playerLosses > 0) {
+            dealerStatus = ' | 🎰 Crupier: ¡GANA!';
+        }
+        else if (playerWins > 0 && playerLosses === 0) {
+            // Todos ganaron o empataron
+            dealerStatus = ' | 🎰 Crupier: Pierde';
+        }
+        this.showMessage(lines.join(' | ') + dealerStatus);
     }
     // Inyección de handlers desde index.ts
     setActionHandlers(onHit, onStand) {
