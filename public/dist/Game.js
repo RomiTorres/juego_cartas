@@ -157,21 +157,62 @@ export class Game {
         this.resolveBets();
     }
     /**
-     * Place a bet for a player. Returns true if the bet was accepted.
+     * Realiza una apuesta para un jugador específico.
+     *
+     * Paso a paso:
+     * 1. Valida que el jugador exista
+     * 2. Valida que la cantidad sea positiva
+     * 3. Valida que el jugador tenga suficientes fondos
+     * 4. Si todo es válido:
+     *    a. Resta la apuesta del balance del jugador
+     *    b. Suma la apuesta al balance del crupier (escrow)
+     *    c. Registra la apuesta actual del jugador
+     * 5. Devuelve true si tuvo éxito, false si falló (y el balance no cambia)
+     *
+     * NOTA IMPORTANTE: Los balances pueden crecer más allá de 1000 si el jugador gana.
+     * No hay límite superior de ganancia.
      */
     placeBet(playerId, amount) {
         const player = this.#players.find(p => p.id === playerId);
         if (!player)
             return false;
+        // Validar cantidad positiva
         if (amount <= 0)
             return false;
+        // Validar fondos suficientes
+        // Si no tiene dinero, la apuesta se rechaza y devuelve false
         if (player.balance < amount)
-            return false; // fondos insuficientes
-        // transferimos la apuesta desde el jugador al dealer (escrow)
-        player.balance -= amount;
-        player.currentBet = (player.currentBet ?? 0) + amount;
-        this.#dealer.balance += amount;
-        return true;
+            return false;
+        // TRANSFERENCIA DE FONDOS (modelo "escrow"):
+        // El dinero se mueve del jugador al crupier/banco hasta que se resuelva la mano
+        player.balance -= amount; // jugador pierde el dinero temporalmente
+        player.currentBet = (player.currentBet ?? 0) + amount; // registrar apuesta
+        this.#dealer.balance += amount; // el crupier lo tiene en custodia
+        return true; // apuesta aceptada
+    }
+    /**
+     * Verifica si un jugador puede seguir jugando (tiene dinero).
+     *
+     * Paso a paso:
+     * 1. Encuentra el jugador por ID
+     * 2. Devuelve true si tiene balance > 0 (puede apostar)
+     * 3. Devuelve false si tiene balance <= 0 (QUIEBRA - debe dejar de jugar)
+     *
+     * Esto se usa antes de permitir nuevas apuestas o iniciar una nueva mano.
+     */
+    canPlayerBet(playerId) {
+        const player = this.#players.find(p => p.id === playerId);
+        if (!player)
+            return false;
+        return player.balance > 0; // solo puede apostar si tiene dinero disponible
+    }
+    /**
+     * Obtiene el balance actual de un jugador.
+     * Útil para verificaciones de solvencia en la UI.
+     */
+    getPlayerBalance(playerId) {
+        const player = this.#players.find(p => p.id === playerId);
+        return player?.balance ?? 0;
     }
     /**
      * Limpia las apuestas almacenadas en los jugadores (prepara siguiente ronda)
@@ -182,12 +223,36 @@ export class Game {
         }
     }
     /**
-     * Resuelve las apuestas según los resultados actuales de la mano.
-     * Reglas implementadas:
-     * - player pierde: dealer se queda con la apuesta (ya la tiene)
-     * - push: dealer devuelve 1x la apuesta
-     * - player gana normal: dealer paga 1:1 ( jugador recibe 2x apuesta )
-     * - blackjack (player 21 con 2 cartas y dealer no): paga 3:2 (2.5x total devuelto)
+     * Resuelve todas las apuestas de los jugadores al final de la mano.
+     *
+     * REGLAS DE PAGO:
+     * ===============
+     * Cuando un jugador apuesta, el dinero va al crupier (escrow).
+     * Al terminar, el crupier devuelve/paga según el resultado:
+     *
+     * 1. JUGADOR PIERDE (playerScore > 21 o dealer ganó):
+     *    - El crupier se queda con la apuesta
+     *    - Payout = 0 (el jugador ya perdió el dinero)
+     *    - Balance: disminuye en la cantidad apostada
+     *
+     * 2. EMPATE/PUSH (playerScore == dealerScore):
+     *    - El crupier devuelve la apuesta sin cambios
+     *    - Payout = 1 × apuesta
+     *    - Balance: vuelve al mismo
+     *
+     * 3. JUGADOR GANA (sin blackjack):
+     *    - El crupier paga 1:1 (devuelve apuesta + ganancias)
+     *    - Payout = 2 × apuesta
+     *    - Balance: aumenta en la cantidad apostada (ganancia = apuesta)
+     *
+     * 4. BLACKJACK (21 con 2 cartas, sin que dealer tenga blackjack):
+     *    - El crupier paga 3:2 (mejor pago por suerte)
+     *    - Payout = 2.5 × apuesta
+     *    - Balance: aumenta 1.5× la apuesta (mayor ganancia)
+     *
+     * NOTA: Los saldos pueden crecer indefinidamente si ganan muchas manos.
+     * Si un jugador pierde todo (balance = 0), no podrá apostar de nuevo
+     * hasta que reciba más dinero o reinicie sus estadísticas.
      */
     resolveBets() {
         if (this.#gameInProgress)
