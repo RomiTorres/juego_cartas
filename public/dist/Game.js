@@ -8,7 +8,7 @@ export class Game {
     constructor() {
         this.#deck = new Deck();
         this.#players = [];
-        this.#dealer = { id: "Dealer", cards: [], score: 0, isDealer: true };
+        this.#dealer = { id: "Dealer", cards: [], score: 0, isDealer: true, balance: 0 };
         this.#currentTurn = 0;
         this.#gameInProgress = false;
     }
@@ -27,19 +27,39 @@ export class Game {
     get currentTurnIndex() {
         return this.#currentTurn;
     }
-    newGame(playerIds = ["Jugador 1", "Jugador 2"]) {
+    /**
+     * Inicia una nueva partida.
+     * Acepta IDs de jugadores y opcionalmente saldos iniciales para cada uno.
+     *
+     * Parámetros:
+     * - playerIds: array de IDs/nombres de jugadores
+     * - initialBalances: objeto opcional que mapea ID → saldo inicial
+     *   Si no se proporciona, todos los jugadores comienzan con 1000 (START_BALANCE)
+     *
+     * Ejemplo de uso:
+     *   game.newGame(["Alice", "Bob"], { "Alice": 500, "Bob": 750 })
+     * Esto causa que Alice tenga 500 y Bob 750 al inicio.
+     */
+    newGame(playerIds = ["Jugador 1", "Jugador 2"], initialBalances = {}) {
         this.#deck = new Deck();
         this.#deck.shuffle();
+        const START_BALANCE = 1000;
+        // Inicializamos jugadores con saldo
+        // Si se proporciona un balance inicial para este jugador, lo usa;
+        // si no, usa START_BALANCE como fallback
         this.#players = playerIds.map(id => ({
             id,
             cards: [],
-            score: 0
+            score: 0,
+            balance: initialBalances[id] ?? START_BALANCE
         }));
+        // El dealer tiene un bankroll mayor (ejemplo)
         this.#dealer = {
             id: "Dealer",
             cards: [],
             score: 0,
-            isDealer: true
+            isDealer: true,
+            balance: START_BALANCE * 10
         };
         for (const player of this.#players) {
             const card1 = this.#deck.drawCard();
@@ -132,6 +152,83 @@ export class Game {
     }
     endGame() {
         this.#gameInProgress = false;
+        // Aseguramos que las puntuaciones estén actualizadas y resolvemos las apuestas
+        this.updateScores();
+        this.resolveBets();
+    }
+    /**
+     * Place a bet for a player. Returns true if the bet was accepted.
+     */
+    placeBet(playerId, amount) {
+        const player = this.#players.find(p => p.id === playerId);
+        if (!player)
+            return false;
+        if (amount <= 0)
+            return false;
+        if (player.balance < amount)
+            return false; // fondos insuficientes
+        // transferimos la apuesta desde el jugador al dealer (escrow)
+        player.balance -= amount;
+        player.currentBet = (player.currentBet ?? 0) + amount;
+        this.#dealer.balance += amount;
+        return true;
+    }
+    /**
+     * Limpia las apuestas almacenadas en los jugadores (prepara siguiente ronda)
+     */
+    clearBets() {
+        for (const p of this.#players) {
+            p.currentBet = undefined;
+        }
+    }
+    /**
+     * Resuelve las apuestas según los resultados actuales de la mano.
+     * Reglas implementadas:
+     * - player pierde: dealer se queda con la apuesta (ya la tiene)
+     * - push: dealer devuelve 1x la apuesta
+     * - player gana normal: dealer paga 1:1 ( jugador recibe 2x apuesta )
+     * - blackjack (player 21 con 2 cartas y dealer no): paga 3:2 (2.5x total devuelto)
+     */
+    resolveBets() {
+        if (this.#gameInProgress)
+            return;
+        const results = this.getWinners();
+        if (!results)
+            return;
+        for (const r of results) {
+            const player = this.#players.find(p => p.id === r.id);
+            if (!player)
+                continue;
+            const bet = player.currentBet ?? 0;
+            const playerBlackjack = player.score === 21 && player.cards.length === 2;
+            const dealerBlackjack = this.#dealer.score === 21 && this.#dealer.cards.length === 2;
+            if (bet <= 0) {
+                player.currentBet = undefined;
+                continue;
+            }
+            if (r.result === "player") {
+                if (playerBlackjack && !dealerBlackjack) {
+                    const payout = 2.5 * bet; // devuelve apuesta + 1.5x ganancia
+                    this.#dealer.balance -= payout;
+                    player.balance += payout;
+                }
+                else {
+                    const payout = 2.0 * bet; // devuelve apuesta + 1x ganancia
+                    this.#dealer.balance -= payout;
+                    player.balance += payout;
+                }
+            }
+            else if (r.result === "push") {
+                const payout = 1.0 * bet; // devolver la apuesta
+                this.#dealer.balance -= payout;
+                player.balance += payout;
+            }
+            else if (r.result === "dealer") {
+                // El dealer ya tomó la apuesta cuando se hizo, no hacer nada adicional
+            }
+            // limpiar apuesta del jugador
+            player.currentBet = undefined;
+        }
     }
     getWinners() {
         if (this.#gameInProgress)

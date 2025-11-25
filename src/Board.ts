@@ -7,6 +7,8 @@ type PlayerView = {
   id: string;
   cards: Card[];
   score: number;
+  balance?: number;
+  currentBet?: number;
 };
 
 export class Board {
@@ -14,15 +16,18 @@ export class Board {
   #dealerCards: HTMLElement;
   #playerCards: HTMLElement;
   #message: HTMLElement;
+  #dealerBalanceEl: HTMLElement | null;
 
   // Handlers de acción (privados y opcionales)
   #onHit: ((index: number) => void) | null;
   #onStand: ((index: number) => void) | null;
+  #onBet: ((index: number, amount: number) => void) | null;
 
   constructor() {
     this.#dealerCards = document.getElementById('dealer-cards')!;
     this.#playerCards = document.getElementById('player-cards')!;
     this.#message = document.getElementById('game-message')!;
+    this.#dealerBalanceEl = document.getElementById('dealer-balance');
 
     this.#onHit = null;
     this.#onStand = null;
@@ -39,6 +44,10 @@ export class Board {
   renderHands(players: PlayerView[], dealer: PlayerView, currentTurnIndex: number): void {
     // Dealer
     this.#dealerCards.innerHTML = '';
+    // mostrar balance del dealer si existe el elemento
+    if (this.#dealerBalanceEl && typeof dealer.balance === 'number') {
+      this.#dealerBalanceEl.textContent = String(dealer.balance);
+    }
     dealer.cards.forEach(card => {
       const img = document.createElement('img');
       img.src = card.getImagePath();
@@ -60,6 +69,12 @@ export class Board {
       const title = document.createElement('h3');
       title.textContent = `${player.id}`;
       header.appendChild(title);
+
+      // Balance del jugador
+      const balanceEl = document.createElement('span');
+      balanceEl.classList.add('player-balance');
+      balanceEl.textContent = `Saldo: ${player.balance ?? 0}`;
+      header.appendChild(balanceEl);
 
       const scoreEl = document.createElement('span');
       scoreEl.classList.add('player-score');
@@ -107,6 +122,45 @@ export class Board {
       actions.appendChild(standBtn);
       container.appendChild(actions);
 
+      // Controles de apuesta
+      const betControls = document.createElement('div');
+      betControls.classList.add('bet-controls');
+
+      // Mostrar apuesta actual si existe
+      const currentBetEl = document.createElement('span');
+      currentBetEl.classList.add('current-bet');
+      if (player.currentBet && player.currentBet > 0) {
+        currentBetEl.textContent = `Apuesta: ${player.currentBet}`;
+      } else {
+        currentBetEl.textContent = `Apuesta: -`;
+      }
+      betControls.appendChild(currentBetEl);
+
+      const betInput = document.createElement('input');
+      betInput.type = 'number';
+      betInput.min = '1';
+      betInput.value = '10';
+      betInput.id = `bet-input-${index}`;
+      betInput.classList.add('bet-input');
+
+      const betBtn = document.createElement('button');
+      betBtn.textContent = 'Apostar';
+      betBtn.id = `bet-btn-${index}`;
+      betBtn.addEventListener('click', () => {
+        const val = Number((document.getElementById(`bet-input-${index}`) as HTMLInputElement).value);
+        if (this.#onBet) this.#onBet(index, val);
+      });
+
+      // Si ya hay apuesta, deshabilitar controles
+      if (player.currentBet && player.currentBet > 0) {
+        betInput.disabled = true;
+        betBtn.disabled = true;
+      }
+
+      betControls.appendChild(betInput);
+      betControls.appendChild(betBtn);
+      container.appendChild(betControls);
+
       // Marcar visualmente al activo (opcional: depende de tu CSS)
       if (isActive) {
         container.classList.add('active-player');
@@ -137,5 +191,10 @@ export class Board {
   setActionHandlers(onHit: (index: number) => void, onStand: (index: number) => void): void {
     this.#onHit = onHit;
     this.#onStand = onStand;
+  }
+
+  // Registrar handler para apuestas
+  setBetHandler(onBet: (index: number, amount: number) => void): void {
+    this.#onBet = onBet;
   }
 }

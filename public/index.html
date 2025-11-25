@@ -14,7 +14,7 @@
 
     <main id="game-board">
         <section id="dealer-area">
-            <h2>Crupier: <span id="dealer-score">0</span></h2>
+            <h2>Crupier: <span id="dealer-score">0</span> — Saldo: <span id="dealer-balance">0</span></h2>
             <div id="dealer-cards" class="card-container">
             </div>
         </section>
@@ -31,8 +31,16 @@
 
         <section id="controls">
             <button id="new-game-button">Nuevo Juego</button>
+            <button id="clear-bets-button">Limpiar Apuestas</button>
+            <button id="stats-button">Mostrar Estadísticas</button>
             <!-- <button id="hit-button" disabled>Pedir Carta</button>
             <button id="stand-button" disabled>Plantarse</button> -->
+        </section>
+
+        <section id="stats-area" style="display: none;">
+            <h2>Estadísticas Acumuladas</h2>
+            <div id="stats-content"></div>
+            <button id="close-stats-button">Cerrar</button>
         </section>
     </main>
 </body>
