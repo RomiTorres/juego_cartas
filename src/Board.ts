@@ -159,9 +159,21 @@ export class Board {
       const betBtn = document.createElement('button');
       betBtn.textContent = 'Apostar';
       betBtn.id = `bet-btn-${index}`;
-      betBtn.addEventListener('click', () => {
+      
+      // Función auxiliar para procesar la apuesta
+      const processBet = () => {
         const val = Number((document.getElementById(`bet-input-${index}`) as HTMLInputElement).value);
         if (this.#onBet) this.#onBet(index, val);
+      };
+      
+      // Click en el botón
+      betBtn.addEventListener('click', processBet);
+      
+      // Presionar Enter en el input de apuesta
+      betInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          processBet();
+        }
       });
 
       // Si ya hay apuesta, deshabilitar controles
