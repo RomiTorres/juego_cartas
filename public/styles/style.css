@@ -6,7 +6,7 @@
  * - Disposición tipo mesa de blackjack (dealer arriba, jugadores abajo)
  * - Diseño responsive para mobile, tablet y desktop
  * - Efectos visuales premium con sombras y animaciones
- * - Posicionamiento inteligente de controles
+ * - Posicionamiento inteligente de controles para jugar sin scroll.
  */
 
 /* ========================================
@@ -20,23 +20,25 @@
 }
 
 html {
-  /* Variables CSS para responsividad - se adaptan según pantalla */
-  --card-width: clamp(60px, 10vw, 120px);
-  --card-height: clamp(84px, 14vw, 168px);
-  --padding-base: clamp(10px, 3vw, 30px);
-  --gap-base: clamp(8px, 2vw, 20px);
+  /* Variables para un diseño fluido y adaptable */
+  --card-width: clamp(70px, 9vw, 130px);
+  --padding-base: clamp(10px, 2vw, 20px);
+  --gap-base: clamp(8px, 1.5vw, 15px);
+  --border-radius: 15px;
 }
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  
-  /* Fondo oscuro estilo casino */
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  
   color: #ffffff;
+  
+  /* Centra el tablero de juego en la pantalla */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   min-height: 100vh;
-  padding: var(--padding-base);
-  overflow-x: hidden;
+  overflow: hidden; /* Previene cualquier scroll en el body */
 }
 
 /* ========================================
@@ -45,17 +47,20 @@ body {
 
 header {
   text-align: center;
-  margin-bottom: var(--padding-base);
+  padding: var(--padding-base);
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
   animation: fadeIn 0.6s ease-in;
 }
 
 header h1 {
-  font-size: clamp(1.8rem, 5vw, 3rem);
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
   color: #ffc107;
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
   letter-spacing: 2px;
   font-weight: bold;
-  margin: 0;
 }
 
 @keyframes fadeIn {
@@ -70,59 +75,52 @@ header h1 {
 }
 
 /* ========================================
-   3. TABLERO PRINCIPAL - TAPETE DE CASINO
+   3. TABLERO PRINCIPAL - EL TAPETE DE JUEGO
    ======================================== */
 
 #game-board {
-  /* Contenedor principal con forma de mesa de blackjack */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  /* Define las filas: Crupier, Mensajes, Jugadores, Controles */
+  grid-template-rows: auto auto 1fr auto;
+  gap: var(--gap-base);
   
   /* Tapete verde estilo casino */
   background: linear-gradient(135deg, #0d5c0d 0%, #1a7a1a 50%, #0d5c0d 100%);
   
   /* Bordes y sombras para efecto 3D */
-  border-radius: 30px;
+  border-radius: var(--border-radius);
   border: 3px solid #8B7355;
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.8),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   
-  /* Tamaño responsivo */
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--padding-base);
-  gap: var(--gap-base);
+  /* Ocupa el 95% de la ventana para dejar un pequeño margen */
+  width: 95vw;
+  height: 85vh; /* Ajustado para dejar espacio al título */
+  max-width: 1800px; /* Límite para pantallas ultra-anchas */
+  max-height: 1200px;
   
-  min-height: 60vh;
-  position: relative;
+  padding: var(--padding-base);
+  overflow: hidden; /* Previene desbordamiento interno */
 }
 
+
 /* ========================================
-   4. ZONA DEL DEALER - ARRIBA DEL TAPETE
+   4. ZONA DEL CRUPIER (DEALER)
    ======================================== */
 
 #dealer-area {
-  /* Posicionada en la parte superior del tapete */
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: calc(var(--gap-base) * 1.5);
-  
-  padding: var(--padding-base);
+  text-align: center;
+  padding-bottom: var(--gap-base);
   border-bottom: 2px solid rgba(255, 193, 7, 0.3);
-  margin-bottom: var(--padding-base);
 }
 
 #dealer-area h2 {
-  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
   color: #ffc107;
   text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
-  margin: 0;
+  margin-bottom: var(--gap-base);
 }
 
 #dealer-score,
@@ -132,230 +130,173 @@ header h1 {
 }
 
 #dealer-cards {
-  /* Contenedor de cartas del dealer */
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: calc(var(--gap-base) * 2);
-  
+  gap: var(--gap-base);
   flex-wrap: wrap;
-  width: 100%;
-  min-height: calc(var(--card-height) * 1.3);
+  min-height: calc(var(--card-width) * 1.4 + 10px); /* Altura dinámica para las cartas */
 }
 
 /* ========================================
-   5. ZONA DE RESULTADOS
+   5. ZONA DE RESULTADOS Y MENSAJES
    ======================================== */
 
 #results-area {
-  width: 100%;
   text-align: center;
-  
-  padding: calc(var(--padding-base) * 0.8);
-  min-height: 50px;
-  
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
-  margin: var(--padding-base) 0;
+  border-radius: calc(var(--border-radius) / 2);
+  padding: calc(var(--padding-base) / 2);
 }
 
 #game-message {
-  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
   color: #ffc107;
   font-weight: bold;
-  min-height: 30px;
+  min-height: 24px;
   animation: slideIn 0.4s ease-out;
 }
 
 @keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ========================================
-   6. ZONA DE JUGADORES - ABAJO DEL TAPETE
+   6. ZONA DE JUGADORES
    ======================================== */
 
 #player-area {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--gap-base);
+  overflow-y: auto; /* SCROLL INTERNO si hay muchos jugadores */
+  padding: var(--padding-base);
+  border-radius: var(--border-radius);
+  background: rgba(0, 0, 0, 0.1);
 }
 
 #player-area h2 {
-  font-size: clamp(1.2rem, 3vw, 1.8rem);
-  color: #ffc107;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
-  margin: 0;
+    display: none; /* Ocultamos el título "Jugadores" para dar más espacio */
 }
 
 #player-cards {
-  /* Grid responsivo para los jugadores */
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: calc(var(--gap-base) * 2);
-  
+  display: flex;
+  flex-wrap: wrap; /* Los jugadores se ajustan al espacio */
+  justify-content: center;
+  gap: var(--gap-base);
   width: 100%;
-  max-width: 1000px;
+  height: 100%;
 }
 
-/* Estilo para cada mano de jugador */
 .player-hand {
-  /* Tarjeta individual para cada jugador */
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 100%);
   border: 2px solid rgba(255, 193, 7, 0.2);
-  border-radius: 15px;
+  border-radius: var(--border-radius);
   padding: var(--padding-base);
   
   display: flex;
   flex-direction: column;
   gap: var(--gap-base);
   
+  /* Flex-basis para que se ajuste el ancho automáticamente */
+  flex: 1 1 400px;
+  max-width: 600px;
+  min-width: 360px;
+  
   transition: all 0.3s ease;
-  position: relative;
 }
 
-.player-hand:hover {
-  border-color: rgba(255, 193, 7, 0.6);
-  box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
-}
-
-/* Marcar jugador activo con efecto visual */
 .player-hand.active-player {
   border-color: #ffc107;
-  background: linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 193, 7, 0.05) 100%);
   box-shadow: 0 0 20px rgba(255, 193, 7, 0.4);
 }
 
-/* Encabezado de jugador - nombre y saldo */
 .player-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--gap-base);
-  
   padding-bottom: var(--gap-base);
   border-bottom: 1px solid rgba(255, 193, 7, 0.2);
 }
 
 .player-header h3 {
-  font-size: clamp(0.95rem, 2vw, 1.3rem);
+  font-size: clamp(1rem, 2.2vw, 1.4rem);
   color: #ffc107;
-  margin: 0;
 }
 
-.player-balance {
-  font-size: clamp(0.85rem, 1.8vw, 1rem);
-  color: #00ff00;
+.player-balance, .player-score {
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
   font-weight: bold;
 }
 
-.player-score {
-  font-size: clamp(0.85rem, 1.8vw, 1rem);
-  color: #ffffff;
-  background: rgba(0, 0, 0, 0.4);
-  padding: 4px 12px;
-  border-radius: 8px;
-}
+.player-balance { color: #00ff00; }
+.player-score { color: #ffffff; background: rgba(0,0,0,0.4); padding: 4px 12px; border-radius: 8px; }
 
-/* Contenedor de cartas del jugador */
 .cards-row {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: calc(var(--gap-base) * 1.5);
+  gap: calc(var(--gap-base) * 0.8);
   flex-wrap: wrap;
-  
-  padding: var(--padding-base) 0;
-  min-height: calc(var(--card-height) * 1.2);
+  flex-grow: 1;
+  min-height: calc(var(--card-width) * 1.4); /* Altura dinámica */
 }
 
 /* ========================================
-   7. CARTAS - ESTILOS
+   7. ESTILOS DE CARTAS
    ======================================== */
 
 .card-container img,
 .cards-row img {
-  /* Tamaño responsivo de las cartas */
   width: var(--card-width);
-  height: var(--card-height);
-  
-  /* Estilos visuales */
+  height: auto; /* Mantiene la proporción de la imagen */
+  aspect-ratio: 2.5 / 3.5; /* Proporción estándar de carta */
   border-radius: 8px;
-  box-shadow: 
-    0 8px 16px rgba(0, 0, 0, 0.5),
-    0 0 1px rgba(255, 255, 255, 0.2);
-  
-  /* Animación entrada */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   animation: cardDeal 0.5s ease-out;
-  
-  /* Efecto hover */
   transition: all 0.3s ease;
   object-fit: cover;
 }
 
 .cards-row img:hover {
   transform: translateY(-8px) scale(1.05);
-  box-shadow: 
-    0 12px 24px rgba(0, 0, 0, 0.6),
-    0 0 10px rgba(255, 193, 7, 0.4);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
 }
 
 @keyframes cardDeal {
-  0% {
-    opacity: 0;
-    transform: scale(0.5) rotateY(90deg);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) rotateY(0deg);
-  }
+  from { opacity: 0; transform: scale(0.5) rotateY(90deg); }
+  to { opacity: 1; transform: scale(1) rotateY(0deg); }
 }
 
 /* ========================================
-   8. CONTROLES DE JUEGO - BOTONES HIT/STAND
+   8. CONTROLES DE JUGADOR (Pedir/Plantarse)
    ======================================== */
 
 .player-actions {
-  /* Contenedor de botones hit/stand por jugador */
   display: flex;
   gap: var(--gap-base);
   justify-content: center;
-  flex-wrap: wrap;
-  
   padding-top: var(--gap-base);
   border-top: 1px solid rgba(255, 193, 7, 0.2);
 }
 
 .player-actions button {
-  /* Botones hit/stand */
-  padding: clamp(8px, 2vw, 12px) clamp(14px, 3vw, 20px);
-  font-size: clamp(0.8rem, 1.5vw, 0.95rem);
-  
+  padding: clamp(10px, 1.8vw, 14px) clamp(14px, 2vw, 18px);
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  
   font-weight: bold;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+  flex-grow: 1;
 }
 
 .player-actions button:hover:not(:disabled) {
   transform: translateY(-3px);
   box-shadow: 0 6px 16px rgba(255, 107, 107, 0.6);
-  background: linear-gradient(135deg, #ff8787 0%, #ff6b6b 100%);
 }
 
 .player-actions button:disabled {
@@ -369,117 +310,64 @@ header h1 {
    ======================================== */
 
 .bet-controls {
-  /* Contenedor de controles de apuesta */
   display: flex;
   flex-direction: column;
   gap: calc(var(--gap-base) * 0.8);
   align-items: center;
-  
-  padding: var(--padding-base);
-  background: rgba(255, 193, 7, 0.1);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 193, 7, 0.2);
+  /* El padding y fondo se han eliminado para una mejor integración */
 }
 
 .current-bet {
-  /* Muestra la apuesta actual */
-  font-size: clamp(0.85rem, 1.8vw, 1rem);
+  font-size: clamp(0.9rem, 2vw, 1rem);
   color: #ffc107;
   font-weight: bold;
-  text-transform: uppercase;
 }
 
 .bet-input {
-  /* Input para ingresar cantidad de apuesta */
   width: 100%;
-  max-width: 120px;
-  
-  padding: clamp(6px, 1.5vw, 10px) clamp(8px, 2vw, 12px);
-  font-size: clamp(0.85rem, 1.8vw, 1rem);
-  
+  padding: 12px;
+  font-size: clamp(1rem, 2vw, 1.2rem);
   background: rgba(255, 255, 255, 0.9);
   color: #1a1a2e;
   border: 2px solid #ffc107;
   border-radius: 8px;
   text-align: center;
   font-weight: bold;
-  
-  transition: all 0.3s ease;
 }
 
-.bet-input:focus {
-  outline: none;
-  border-color: #00ff00;
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-}
-
-.bet-input:disabled {
-  background: #e0e0e0;
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Controles de apuesta - botones */
 .bet-controls button {
-  /* Botón "Apostar" */
   width: 100%;
-  max-width: 120px;
-  
-  padding: clamp(8px, 2vw, 10px) clamp(12px, 2vw, 16px);
-  font-size: clamp(0.8rem, 1.5vw, 0.9rem);
-  
+  padding: 14px;
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
   background: linear-gradient(135deg, #00c853 0%, #00a840 100%);
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  
   font-weight: bold;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4);
-}
-
-.bet-controls button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 200, 83, 0.6);
-  background: linear-gradient(135deg, #00e676 0%, #00c853 100%);
-}
-
-.bet-controls button:disabled {
-  background: #6c757d;
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* ========================================
-   10. CONTROLES GLOBALES - ARRIBA DEL TAPETE
+   10. CONTROLES GLOBALES (Nuevo Juego, etc.)
    ======================================== */
 
 #controls {
-  /* Contenedor de botones globales (Nuevo Juego, etc) */
   width: 100%;
   display: flex;
   gap: var(--gap-base);
   justify-content: center;
   flex-wrap: wrap;
-  
-  padding: var(--padding-base);
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 15px;
-  margin-top: calc(var(--padding-base) * 2);
+  padding: var(--padding-base) 0 0 0;
 }
 
 #controls button {
-  /* Botones principales del juego */
-  padding: clamp(10px, 2.5vw, 14px) clamp(16px, 3vw, 24px);
+  padding: clamp(10px, 2vw, 12px) clamp(16px, 3vw, 22px);
   font-size: clamp(0.8rem, 1.8vw, 1rem);
-  
   background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
   color: #1a1a2e;
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  
   font-weight: bold;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
@@ -488,19 +376,13 @@ header h1 {
 #controls button:hover:not(:disabled) {
   transform: translateY(-3px);
   box-shadow: 0 6px 18px rgba(255, 193, 7, 0.6);
-  background: linear-gradient(135deg, #ffeb3b 0%, #ffc107 100%);
-}
-
-#controls button:active:not(:disabled) {
-  transform: translateY(-1px);
 }
 
 /* ========================================
-   11. PANEL DE ESTADÍSTICAS
+   11. PANEL DE ESTADÍSTICAS (Modal)
    ======================================== */
 
 #stats-area {
-  /* Panel modal de estadísticas */
   position: fixed;
   top: 50%;
   left: 50%;
@@ -508,11 +390,10 @@ header h1 {
   
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   border: 2px solid #ffc107;
-  border-radius: 20px;
-  padding: calc(var(--padding-base) * 2);
+  border-radius: var(--border-radius);
+  padding: calc(var(--padding-base) * 1.5);
   
-  max-width: 90%;
-  width: 100%;
+  width: clamp(300px, 90vw, 800px);
   max-height: 80vh;
   overflow-y: auto;
   
@@ -523,28 +404,20 @@ header h1 {
 }
 
 @keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -40%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
+  from { opacity: 0; transform: translate(-50%, -40%); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
 }
 
 #stats-area h2 {
   color: #ffc107;
   text-align: center;
   margin-bottom: var(--padding-base);
-  margin-top: 0;
 }
 
 #stats-content {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--padding-base);
-  margin-bottom: var(--padding-base);
 }
 
 .player-stats {
@@ -555,22 +428,9 @@ header h1 {
   text-align: center;
 }
 
-.player-stats h3 {
-  color: #ffc107;
-  margin-bottom: calc(var(--gap-base) * 1.5);
-  margin-top: 0;
-}
-
-.player-stats p {
-  color: #ffffff;
-  font-size: 0.9rem;
-  margin: 8px 0;
-}
-
 #stats-area button {
   display: block;
   margin: var(--padding-base) auto 0;
-  
   padding: 10px 30px;
   background: #ffc107;
   color: #1a1a2e;
@@ -578,112 +438,4 @@ header h1 {
   border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
-  
-  transition: all 0.3s ease;
-}
-
-#stats-area button:hover {
-  background: #ffeb3b;
-  transform: translateY(-2px);
-}
-
-/* ========================================
-   12. RESPONSIVE - TABLET (768px a 1024px)
-   ======================================== */
-
-@media (max-width: 1024px) {
-  #player-cards {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  }
-}
-
-/* ========================================
-   13. RESPONSIVE - MOBILE (hasta 768px)
-   ======================================== */
-
-@media (max-width: 768px) {
-  html {
-    --card-width: clamp(50px, 8vw, 90px);
-    --card-height: clamp(70px, 11.2vw, 126px);
-  }
-  
-  #game-board {
-    border-radius: 20px;
-    min-height: auto;
-    padding: calc(var(--padding-base) * 0.8);
-  }
-  
-  #player-cards {
-    grid-template-columns: 1fr;
-  }
-  
-  .player-hand {
-    padding: calc(var(--padding-base) * 0.8);
-  }
-  
-  #dealer-area {
-    padding: calc(var(--padding-base) * 0.8);
-  }
-  
-  #controls {
-    flex-direction: column;
-  }
-  
-  #controls button {
-    width: 100%;
-  }
-  
-  .player-actions {
-    flex-direction: column;
-  }
-  
-  .player-actions button {
-    width: 100%;
-  }
-  
-  .bet-controls {
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .bet-input,
-  .bet-controls button {
-    max-width: 100px;
-  }
-}
-
-/* ========================================
-   14. RESPONSIVE - MOBILE PEQUEÑO (hasta 480px)
-   ======================================== */
-
-@media (max-width: 480px) {
-  header h1 {
-    font-size: 1.5rem;
-  }
-  
-  #game-board {
-    padding: var(--padding-base);
-  }
-  
-  .player-header {
-    flex-direction: column;
-    gap: calc(var(--gap-base) * 0.5);
-  }
-  
-  .cards-row {
-    gap: calc(var(--gap-base) * 0.8);
-    min-height: auto;
-  }
-  
-  .bet-controls {
-    flex-direction: column;
-    gap: calc(var(--gap-base) * 0.5);
-  }
-  
-  .bet-input,
-  .bet-controls button {
-    width: 100%;
-    max-width: none;
-  }
 }
