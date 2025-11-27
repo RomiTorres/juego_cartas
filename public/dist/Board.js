@@ -30,6 +30,11 @@ export class Board {
         if (this.#dealerBalanceEl && typeof dealer.balance === 'number') {
             this.#dealerBalanceEl.textContent = String(dealer.balance);
         }
+        // actualizar score del dealer
+        const dealerScoreEl = document.getElementById('dealer-score');
+        if (dealerScoreEl) {
+            dealerScoreEl.textContent = String(dealer.score);
+        }
         dealer.cards.forEach(card => {
             const img = document.createElement('img');
             img.src = card.getImagePath();
