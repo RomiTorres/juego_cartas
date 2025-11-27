@@ -1,0 +1,15 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'>
+
+    <style>
+       text {
+        font_size:20px;
+        fill: rgba(255, 255, 255, 0.8);
+       }
+    </style>
+    <text x='10' y='25'>♠</text>
+    <text x='50' y='25'>♣</text>
+    <text x='10' y='65'>♥</text>
+    <text x='50' y='65'>♦</text>
+</svg>
+       
+   

@@ -29,7 +29,7 @@ html {
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: url('../img/casino_pattern.svg') repeat;
   color: #ffffff;
   
   /* Centra el tablero de juego en la pantalla */
@@ -39,6 +39,16 @@ body {
   align-items: center;
   min-height: 100vh;
   overflow: hidden; /* Previene cualquier scroll en el body */
+}
+
+.main-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  color: #ffc107;
+  text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.8);
+  letter-spacing: 3px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  animation: fadeIn 1s ease-in;
 }
 
 /* ========================================
