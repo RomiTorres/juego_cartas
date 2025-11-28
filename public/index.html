@@ -1,13 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="../dist/index..js" type="module" async></script>
-  <link rel="stylesheet" href="./styles/style.css">
-  <title>Document</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <script src="dist/index.js" type="module" defer></script>
 </head>
 <body>
-  <p>Hola mundo</p>
+    <header>
+        <h1 class="main-title">Black Jack Xarxatec</h1>
+    </header>
+
+    <main id="game-board">
+        <section id="dealer-area">
+            <h2>Crupier: <span id="dealer-score">0</span> — Saldo: <span id="dealer-balance">0</span></h2>
+            <div id="dealer-cards" class="card-container">
+            </div>
+        </section>
+
+        <section id="results-area">
+            <p id="game-message"></p>
+        </section>
+
+        <section id="player-area">
+            <h2>Jugadores</h2>
+            <div id="player-cards" class="card-container"></div>
+        </section>
+
+
+        <section id="controls">
+            <button id="new-game-button">Nuevo Juego</button>
+            <button id="clear-bets-button">Limpiar Apuestas</button>
+            <button id="stats-button">Mostrar Estadísticas</button>
+            <button id="reset-stats-button">Reiniciar Estadísticas</button>
+        </section>
+
+        <section id="stats-area" style="display: none;">
+            <h2>Estadísticas Acumuladas</h2>
+            <div id="stats-content"></div>
+            <button id="close-stats-button">Cerrar</button>
+        </section>
+    </main>
 </body>
 </html>
