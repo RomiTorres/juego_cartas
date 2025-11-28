@@ -1,18 +1,3 @@
-/**
- * ============================================
- * BLACKJACK GAME - DISEÑO RESPONSIVO DE CASINO
- * ============================================
- * Este CSS crea un tapete estilo casino profesional con:
- * - Disposición tipo mesa de blackjack (dealer arriba, jugadores abajo)
- * - Diseño responsive para mobile, tablet y desktop
- * - Efectos visuales premium con sombras y animaciones
- * - Posicionamiento inteligente de controles para jugar sin scroll.
- */
-
-/* ========================================
-   1. ESTILOS GLOBALES Y BASE
-   ======================================== */
-
 * {
   margin: 0;
   padding: 0;
@@ -20,7 +5,6 @@
 }
 
 html {
-  /* Variables para un diseño fluido y adaptable */
   --card-width: clamp(70px, 9vw, 130px);
   --padding-base: clamp(10px, 2vw, 20px);
   --gap-base: clamp(8px, 1.5vw, 15px);
@@ -32,13 +16,12 @@ body {
   background: url('../img/casino_pattern.svg') repeat;
   color: #ffffff;
   
-  /* Centra el tablero de juego en la pantalla */
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  overflow: hidden; /* Previene cualquier scroll en el body */
+  overflow: hidden; 
 }
 
 .main-title {
@@ -50,10 +33,6 @@ body {
   margin-bottom: 20px;
   animation: fadeIn 1s ease-in;
 }
-
-/* ========================================
-   2. ENCABEZADO Y TÍTULO
-   ======================================== */
 
 header {
   text-align: center;
@@ -84,40 +63,25 @@ header h1 {
   }
 }
 
-/* ========================================
-   3. TABLERO PRINCIPAL - EL TAPETE DE JUEGO
-   ======================================== */
 
 #game-board {
   display: grid;
-  /* Define las filas: Crupier, Mensajes, Jugadores, Controles */
   grid-template-rows: auto auto 1fr auto;
   gap: var(--gap-base);
   
-  /* Tapete verde estilo casino */
   background: linear-gradient(135deg, #0d5c0d 0%, #1a7a1a 50%, #0d5c0d 100%);
   
-  /* Bordes y sombras para efecto 3D */
   border-radius: var(--border-radius);
   border: 3px solid #8B7355;
-  box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.8),
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  
-  /* Ocupa el 95% de la ventana para dejar un pequeño margen */
   width: 95vw;
-  height: 85vh; /* Ajustado para dejar espacio al título */
-  max-width: 1800px; /* Límite para pantallas ultra-anchas */
+  height: 85vh; 
+  max-width: 1800px; 
   max-height: 1200px;
-  
   padding: var(--padding-base);
-  overflow: hidden; /* Previene desbordamiento interno */
+  overflow: hidden; 
 }
-
-
-/* ========================================
-   4. ZONA DEL CRUPIER (DEALER)
-   ======================================== */
 
 #dealer-area {
   width: 100%;
@@ -145,12 +109,8 @@ header h1 {
   align-items: center;
   gap: var(--gap-base);
   flex-wrap: wrap;
-  min-height: calc(var(--card-width) * 1.4 + 10px); /* Altura dinámica para las cartas */
+  min-height: calc(var(--card-width) * 1.4 + 10px); 
 }
-
-/* ========================================
-   5. ZONA DE RESULTADOS Y MENSAJES
-   ======================================== */
 
 #results-area {
   text-align: center;
@@ -172,25 +132,21 @@ header h1 {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ========================================
-   6. ZONA DE JUGADORES
-   ======================================== */
-
 #player-area {
   width: 100%;
-  overflow-y: auto; /* SCROLL INTERNO si hay muchos jugadores */
+  overflow-y: auto; 
   padding: var(--padding-base);
   border-radius: var(--border-radius);
   background: rgba(0, 0, 0, 0.1);
 }
 
 #player-area h2 {
-    display: none; /* Ocultamos el título "Jugadores" para dar más espacio */
+    display: none; 
 }
 
 #player-cards {
   display: flex;
-  flex-wrap: wrap; /* Los jugadores se ajustan al espacio */
+  flex-wrap: wrap; 
   justify-content: center;
   gap: var(--gap-base);
   width: 100%;
@@ -207,11 +163,9 @@ header h1 {
   flex-direction: column;
   gap: var(--gap-base);
   
-  /* Flex-basis para que se ajuste el ancho automáticamente */
   flex: 1 1 400px;
   max-width: 600px;
   min-width: 360px;
-  
   transition: all 0.3s ease;
 }
 
@@ -250,18 +204,14 @@ header h1 {
   gap: calc(var(--gap-base) * 0.8);
   flex-wrap: wrap;
   flex-grow: 1;
-  min-height: calc(var(--card-width) * 1.4); /* Altura dinámica */
+  min-height: calc(var(--card-width) * 1.4); 
 }
-
-/* ========================================
-   7. ESTILOS DE CARTAS
-   ======================================== */
 
 .card-container img,
 .cards-row img {
   width: var(--card-width);
-  height: auto; /* Mantiene la proporción de la imagen */
-  aspect-ratio: 2.5 / 3.5; /* Proporción estándar de carta */
+  height: auto; 
+  aspect-ratio: 2.5 / 3.5; 
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   animation: cardDeal 0.5s ease-out;
@@ -278,10 +228,6 @@ header h1 {
   from { opacity: 0; transform: scale(0.5) rotateY(90deg); }
   to { opacity: 1; transform: scale(1) rotateY(0deg); }
 }
-
-/* ========================================
-   8. CONTROLES DE JUGADOR (Pedir/Plantarse)
-   ======================================== */
 
 .player-actions {
   display: flex;
@@ -315,16 +261,11 @@ header h1 {
   cursor: not-allowed;
 }
 
-/* ========================================
-   9. CONTROLES DE APUESTA
-   ======================================== */
-
 .bet-controls {
   display: flex;
   flex-direction: column;
   gap: calc(var(--gap-base) * 0.8);
   align-items: center;
-  /* El padding y fondo se han eliminado para una mejor integración */
 }
 
 .current-bet {
@@ -357,10 +298,6 @@ header h1 {
   font-weight: bold;
 }
 
-/* ========================================
-   10. CONTROLES GLOBALES (Nuevo Juego, etc.)
-   ======================================== */
-
 #controls {
   width: 100%;
   display: flex;
@@ -388,28 +325,20 @@ header h1 {
   box-shadow: 0 6px 18px rgba(255, 193, 7, 0.6);
 }
 
-/* ========================================
-   11. PANEL DE ESTADÍSTICAS (Modal)
-   ======================================== */
-
 #stats-area {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   border: 2px solid #ffc107;
   border-radius: var(--border-radius);
   padding: calc(var(--padding-base) * 1.5);
-  
   width: clamp(300px, 90vw, 800px);
   max-height: 80vh;
   overflow-y: auto;
-  
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
   z-index: 1000;
-  
   animation: slideUp 0.4s ease-out;
 }
 

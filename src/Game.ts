@@ -6,8 +6,8 @@ export type Player = {
   cards: Card[];
   score: number;
   isDealer?: boolean;
-  balance: number;       // saldo disponible del jugador o crupier
-  currentBet?: number;   // apuesta actual para la ronda
+  balance: number;       
+  currentBet?: number;  
 };
 
 type Result = "player" | "dealer" | "push";
@@ -46,19 +46,7 @@ export class Game {
     get currentTurnIndex(): number {
       return this.#currentTurn;
     }
-  /**
-   * Inicia una nueva partida.
-   * Acepta IDs de jugadores y opcionalmente saldos iniciales para cada uno.
-   * 
-   * Parámetros:
-   * - playerIds: array de IDs/nombres de jugadores
-   * - initialBalances: objeto opcional que mapea ID → saldo inicial
-   *   Si no se proporciona, todos los jugadores comienzan con 1000 (START_BALANCE)
-   * 
-   * Ejemplo de uso:
-   *   game.newGame(["Alice", "Bob"], { "Alice": 500, "Bob": 750 })
-   * Esto causa que Alice tenga 500 y Bob 750 al inicio.
-   */
+
   newGame(
     playerIds: string[] = ["Jugador 1", "Jugador 2"],
     initialBalances: Record<string, number> = {}
@@ -68,9 +56,6 @@ export class Game {
 
     const START_BALANCE = 1000;
 
-    // Inicializamos jugadores con saldo
-    // Si se proporciona un balance inicial para este jugador, lo usa;
-    // si no, usa START_BALANCE como fallback
     this.#players = playerIds.map(id => ({
       id,
       cards: [],
@@ -78,7 +63,6 @@ export class Game {
       balance: initialBalances[id] ?? START_BALANCE
     }));
 
-    // El dealer tiene un bankroll mayor (ejemplo)
     this.#dealer = {
       id: "Dealer",
       cards: [],
@@ -193,144 +177,52 @@ export class Game {
 
   endGame(): void {
     this.#gameInProgress = false;
-    // Aseguramos que las puntuaciones estén actualizadas y resolvemos las apuestas
     this.updateScores();
     this.resolveBets();
   }
 
-  /**
-   * Realiza una apuesta para un jugador específico.
-   * 
-   * Paso a paso:
-   * 1. Valida que el jugador exista
-   * 2. Valida que la cantidad sea positiva
-   * 3. Valida que cumpla la apuesta MÍNIMA de $10
-   * 4. Valida que el jugador tenga suficientes fondos
-   * 5. Si todo es válido:
-   *    a. Resta la apuesta del balance del jugador
-   *    b. Suma la apuesta al balance del crupier (escrow)
-   *    c. Registra la apuesta actual del jugador
-   * 6. Devuelve true si tuvo éxito, false si falló (y el balance no cambia)
-   * 
-   * NOTA IMPORTANTE: 
-   * - Los balances pueden crecer más allá de 1000 si el jugador gana.
-   * - Apuesta MÍNIMA: $10 (obligatoria)
-   * - No hay límite superior de ganancia.
-   * 
-   * Códigos de error (implícitos):
-   * - Devuelve false si jugador no existe
-   * - Devuelve false si amount <= 0
-   * - Devuelve false si amount < 10 (mínimo no cumplido)
-   * - Devuelve false si player.balance < amount (fondos insuficientes)
-   */
   placeBet(playerId: string, amount: number): boolean {
-    const MIN_BET = 10; // Apuesta mínima requerida
+    const MIN_BET = 10; 
 
     const player = this.#players.find(p => p.id === playerId);
     if (!player) return false;
     
-    // Validar cantidad positiva
     if (amount <= 0) return false;
     
-    // Validar apuesta MÍNIMA de $10
-    // La apuesta es obligatoria y debe ser al menos $10
     if (amount < MIN_BET) return false;
     
-    // Validar fondos suficientes
-    // Si no tiene dinero, la apuesta se rechaza y devuelve false
     if (player.balance < amount) return false;
 
-    // TRANSFERENCIA DE FONDOS (modelo "escrow"):
-    // El dinero se mueve del jugador al crupier/banco hasta que se resuelva la mano
-    player.balance -= amount;           // jugador pierde el dinero temporalmente
-    player.currentBet = (player.currentBet ?? 0) + amount; // registrar apuesta
-    this.#dealer.balance += amount;     // el crupier lo tiene en custodia
+    player.balance -= amount;          
+    player.currentBet = (player.currentBet ?? 0) + amount; 
+    this.#dealer.balance += amount;    
     
-    return true; // apuesta aceptada
+    return true; 
   }
 
-  /**
-   * Verifica si un jugador tiene una apuesta activa para la ronda actual.
-   * 
-   * Paso a paso:
-   * 1. Encuentra el jugador por ID
-   * 2. Devuelve true si player.currentBet > 0 (tiene apuesta)
-   * 3. Devuelve false si currentBet es undefined o <= 0 (sin apuesta)
-   * 
-   * Uso: Antes de permitir hit() o stand(), verificar que haya apuesta.
-   */
   hasActiveBet(playerId: string): boolean {
     const player = this.#players.find(p => p.id === playerId);
     if (!player) return false;
     return (player.currentBet ?? 0) > 0; // tiene apuesta activa
   }
 
-  /**
-   * Verifica si un jugador puede seguir jugando (tiene dinero).
-   * 
-   * Paso a paso:
-   * 1. Encuentra el jugador por ID
-   * 2. Devuelve true si tiene balance > 0 (puede apostar)
-   * 3. Devuelve false si tiene balance <= 0 (QUIEBRA - debe dejar de jugar)
-   * 
-   * Esto se usa antes de permitir nuevas apuestas o iniciar una nueva mano.
-   */
   canPlayerBet(playerId: string): boolean {
     const player = this.#players.find(p => p.id === playerId);
     if (!player) return false;
-    return player.balance > 0; // solo puede apostar si tiene dinero disponible
+    return player.balance > 0; 
   }
 
-  /**
-   * Obtiene el balance actual de un jugador.
-   * Útil para verificaciones de solvencia en la UI.
-   */
   getPlayerBalance(playerId: string): number {
     const player = this.#players.find(p => p.id === playerId);
     return player?.balance ?? 0;
   }
 
-  /**
-   * Limpia las apuestas almacenadas en los jugadores (prepara siguiente ronda)
-   */
   clearBets(): void {
     for (const p of this.#players) {
       p.currentBet = undefined;
     }
   }
 
-  /**
-   * Resuelve todas las apuestas de los jugadores al final de la mano.
-   * 
-   * REGLAS DE PAGO:
-   * ===============
-   * Cuando un jugador apuesta, el dinero va al crupier (escrow).
-   * Al terminar, el crupier devuelve/paga según el resultado:
-   * 
-   * 1. JUGADOR PIERDE (playerScore > 21 o dealer ganó):
-   *    - El crupier se queda con la apuesta
-   *    - Payout = 0 (el jugador ya perdió el dinero)
-   *    - Balance: disminuye en la cantidad apostada
-   * 
-   * 2. EMPATE/PUSH (playerScore == dealerScore):
-   *    - El crupier devuelve la apuesta sin cambios
-   *    - Payout = 1 × apuesta
-   *    - Balance: vuelve al mismo
-   * 
-   * 3. JUGADOR GANA (sin blackjack):
-   *    - El crupier paga 1:1 (devuelve apuesta + ganancias)
-   *    - Payout = 2 × apuesta
-   *    - Balance: aumenta en la cantidad apostada (ganancia = apuesta)
-   * 
-   * 4. BLACKJACK (21 con 2 cartas, sin que dealer tenga blackjack):
-   *    - El crupier paga 3:2 (mejor pago por suerte)
-   *    - Payout = 2.5 × apuesta
-   *    - Balance: aumenta 1.5× la apuesta (mayor ganancia)
-   * 
-   * NOTA: Los saldos pueden crecer indefinidamente si ganan muchas manos.
-   * Si un jugador pierde todo (balance = 0), no podrá apostar de nuevo
-   * hasta que reciba más dinero o reinicie sus estadísticas.
-   */
   resolveBets(): void {
     if (this.#gameInProgress) return;
     const results = this.getWinners();
@@ -351,23 +243,21 @@ export class Game {
 
       if (r.result === "player") {
         if (playerBlackjack && !dealerBlackjack) {
-          const payout = 2.5 * bet; // devuelve apuesta + 1.5x ganancia
+          const payout = 2.5 * bet; 
           this.#dealer.balance -= payout;
           player.balance += payout;
         } else {
-          const payout = 2.0 * bet; // devuelve apuesta + 1x ganancia
+          const payout = 2.0 * bet; 
           this.#dealer.balance -= payout;
           player.balance += payout;
         }
       } else if (r.result === "push") {
-        const payout = 1.0 * bet; // devolver la apuesta
+        const payout = 1.0 * bet; 
         this.#dealer.balance -= payout;
         player.balance += payout;
       } else if (r.result === "dealer") {
-        // El dealer ya tomó la apuesta cuando se hizo, no hacer nada adicional
       }
 
-      // limpiar apuesta del jugador
       player.currentBet = undefined;
     }
   }

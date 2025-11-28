@@ -6,42 +6,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const game = new Game();
   const board = new Board();
 
-  // Instancia del gestor de estadísticas persistentes
-  // Esto nos permite guardar/cargar balances entre partidas usando localStorage
   const statsManager = new PlayerStatsManager();
 
-  // IMPORTANTE: reiniciar balances al abrir la página
-  // El usuario pidió que al abrir el juego los jugadores empiecen siempre con $1000,
-  // por lo que limpiamos / reiniciamos los datos persistentes al cargar.
   const initialPlayerNames = ["Jugador 1", "Jugador 2"];
   for (const name of initialPlayerNames) {
-    statsManager.resetPlayer(name, 1000); // fuerza balance = 1000
+    statsManager.resetPlayer(name, 1000); 
   }
 
-  // Variable para guardar los balances ANTES de que comience la partida
-  // Se usa para calcular correctamente el cambio de saldo en saveGameResults()
   let preGameBalances: Record<string, number> = {};
 
   const newGameButton = document.getElementById('new-game-button')!;
   const clearBetsButton = document.getElementById('clear-bets-button')!;
 
-  /**
-   * Handlers para los botones hit y stand.
-   * 
-   * Validaciones:
-   * 1. Solo si es el turno del jugador actual
-   * 2. Solo si el jugador tiene una apuesta activa (apuesta es obligatoria)
-   * 
-   * Si alguna validación falla, se muestra un mensaje y no se ejecuta la acción.
-   */
   board.setActionHandlers(
     (index) => {
-      // Botón HIT (pedir carta)
       if (index === game.currentTurnIndex) {
         const player = game.playerList[index];
         
-        // Verificar que el jugador tenga apuesta activa
-        // (apuesta obligatoria mínimo $10)
         if (!game.hasActiveBet(player.id)) {
           board.showMessage(`⛔ ${player.id}: Debes apostar mínimo $10 antes de jugar.`);
           return;
@@ -52,12 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     },
     (index) => {
-      // Botón STAND (plantarse)
       if (index === game.currentTurnIndex) {
         const player = game.playerList[index];
         
-        // Verificar que el jugador tenga apuesta activa
-        // (apuesta obligatoria mínimo $10)
         if (!game.hasActiveBet(player.id)) {
           board.showMessage(`⛔ ${player.id}: Debes apostar mínimo $10 antes de jugar.`);
           return;
@@ -69,18 +47,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   );
 
-  // Handler para apuestas desde la UI
   board.setBetHandler((index, amount) => {
     const player = game.playerList[index];
     if (!player) return;
     
-    // Verificar si el jugador tiene fondos antes de permitir apuesta
     if (!game.canPlayerBet(player.id)) {
       board.showMessage(`⛔ ${player.id} está en QUIEBRA. Sin dinero para apostar. Reinicia las estadísticas para continuar.`);
       return;
     }
     
-    // Validar que la apuesta sea al menos $10
     if (amount < 10) {
       board.showMessage(`⚠️ Apuesta mínima es $10. Intenta de nuevo.`);
       return;
@@ -95,18 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUI();
   });
 
-  /**
-   * Función auxiliar para actualizar la UI después de cambios en el juego.
-   * Se llama tras cada acción (hit, stand, apuesta, etc.)
-   * 
-   * RESPONSABILIDADES:
-   * 1. Renderizar las manos (cartas) de todos los jugadores
-   * 2. Si la partida terminó:
-   *    a. Mostrar resultados (quién ganó)
-   *    b. Guardar resultados en localStorage (actualizar balances)
-   * 3. Si aún hay partida:
-   *    a. Mostrar a quién le toca jugar
-   */
   function updateUI(): void {
     board.renderHands(game.playerList, game.dealerInfo, game.currentTurnIndex);
 
@@ -114,10 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const results = game.getWinners();
       if (results) {
         board.showResults(results);
-        // Una vez que la partida termina, guardamos los balances en localStorage
         saveGameResults(results);
         
-        // Verificar si algún jugador está en quiebra
         checkForBankruptPlayers(results);
       }
     } else {
@@ -126,17 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  /**
-   * Verifica si algún jugador se ha quedado sin dinero (QUIEBRA).
-   * 
-   * Paso a paso:
-   * 1. Para cada jugador que acaba de terminar una mano:
-   *    a. Obtén su balance actual
-   *    b. Si balance <= 0:
-   *       - Mostrar mensaje de quiebra en la UI
-   *       - El jugador NO podrá apostar en la siguiente partida
-   *       - Sugerir reiniciar estadísticas o dar más dinero
-   */
   function checkForBankruptPlayers(results: Array<{ id: string; result: 'player' | 'dealer' | 'push' }>): void {
     for (const r of results) {
       const player = game.playerList.find(p => p.id === r.id);
@@ -152,49 +102,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  /**
-   * Guarda los resultados de la partida en localStorage.
-   * 
-   * Paso a paso:
-   * 1. Para cada jugador en la partida:
-   *    a. Obtén su balance ACTUAL (tras resolver apuestas)
-   *    b. Obtén su balance PRE-PARTIDA (guardado cuando comenzó la mano)
-   *    c. Calcula el cambio: currentBalance - preGameBalance
-   *    d. Determina si ganó o perdió esa mano
-   *    e. Llama a statsManager.updatePlayerAfterRound() para actualizar sus estadísticas
-   * 2. Muestra en consola los balances y cambios para debugging
-   * 
-   * NOTA IMPORTANTE: Usamos preGameBalances (guardado antes de apostar)
-   * en lugar de previousBalance del localStorage, para evitar errores
-   * de cálculo cuando el balance cambia durante la partida.
-   */
   function saveGameResults(results: Array<{ id: string; result: 'player' | 'dealer' | 'push' }>): void {
     console.log("Guardando resultados de partida...");
     for (const result of results) {
       const player = game.playerList.find(p => p.id === result.id);
       if (!player) continue;
 
-      // Determinar si el jugador ganó esta mano
       const wonHand = result.result === 'player';
 
-      // Balance ACTUAL tras resolver apuestas
       const currentBalance = player.balance;
       
-      // Balance PRE-PARTIDA (guardado antes de comenzar)
-      // Esto es crítico para calcular correctamente el cambio
       const preGameBalance = preGameBalances[player.id] ?? 1000;
 
-      // Calcular el cambio: puede ser positivo (ganó dinero) o negativo (perdió dinero)
       const change = currentBalance - preGameBalance;
 
-      // Actualizar estadísticas en localStorage
-      // Este método suma el 'change' al balance guardado
       statsManager.updatePlayerAfterRound(player.id, change, wonHand);
 
       console.log(`${player.id}: Balance pre-partida=${preGameBalance}, Balance actual=${currentBalance}, Cambio=${change}, Ganó=${wonHand}`);
     }
 
-    // Mostrar estadísticas finales para verificación
     console.log("Estadísticas actualizadas:");
     for (const p of game.playerList) {
       const stats = statsManager.getStats(p.id);
@@ -204,18 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  /**
-   * Evento: Pulsar "Nuevo Juego"
-   * 
-   * Paso a paso:
-   * 1. Obtén los balances persistentes de cada jugador del localStorage
-   * 2. Inicia una nueva partida con esos balances
-   * 3. Limpia apuestas previas
-   * 4. Renderiza la UI con los datos actualizados
-   */
   newGameButton.addEventListener('click', () => {
-    // Carga balances previos del localStorage
-    // Si un jugador no tiene balance guardado, getOrCreatePlayer lo crea con 1000
     const playerNames = ["Jugador 1", "Jugador 2"];
     const balancesMap: Record<string, number> = {};
 
@@ -226,22 +141,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log("Balances cargados del localStorage:", balancesMap);
 
-    // Inicia nueva partida pasando los balances persistentes
     game.newGame(playerNames, balancesMap);
     board.clearBoard();
 
-    // GUARDAR LOS BALANCES PRE-PARTIDA
-    // Esto es CRÍTICO: guardamos los balances ANTES de que se hagan apuestas
-    // para poder calcular correctamente el cambio al final de la partida
     preGameBalances = {};
     for (const p of game.playerList) {
       preGameBalances[p.id] = p.balance;
       console.log(`Balance pre-partida guardado para ${p.id}: $${p.balance}`);
     }
 
-    // Se limpia cualquier apuesta previa. Luego el usuario puede apostar desde la UI
     game.clearBets();
-    // Mostrar balances iniciales en consola
     console.log("Balances iniciales de esta partida:");
     for (const p of game.playerList) console.log(p.id, p.balance);
     console.log("Dealer", game.dealerInfo.balance);
@@ -249,40 +158,26 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUI();
   });
 
-  // Permite limpiar apuestas para habilitar re-apuestas manualmente
   clearBetsButton.addEventListener('click', () => {
     game.clearBets();
     board.showMessage('Apuestas limpiadas. Puedes reapostar.');
     updateUI();
   });
 
-  /**
-   * Evento: Pulsar "Mostrar Estadísticas"
-   * 
-   * Abre un panel que muestra las estadísticas acumuladas de cada jugador:
-   * - Balance actual
-   * - Ganancias/Pérdidas desde el inicio
-   * - Número de manos ganadas y perdidas
-   * - Porcentaje de victorias
-   */
   const statsButton = document.getElementById('stats-button')!;
   const statsArea = document.getElementById('stats-area')!;
   const statsContent = document.getElementById('stats-content')!;
   const closeStatsButton = document.getElementById('close-stats-button')!;
 
   statsButton.addEventListener('click', () => {
-    // Limpiar contenido previo
     statsContent.innerHTML = '';
 
-    // Obtener nombres de jugadores
     const playerNames = ["Jugador 1", "Jugador 2"];
 
-    // Para cada jugador, obtener sus estadísticas y mostrarlas
     for (const name of playerNames) {
       const stats = statsManager.getStats(name);
       if (!stats) continue;
 
-      // Crear un elemento para mostrar estadísticas del jugador
       const statDiv = document.createElement('div');
       statDiv.classList.add('player-stats');
       statDiv.style.marginBottom = '20px';
@@ -290,7 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
       statDiv.style.border = '1px solid #ccc';
       statDiv.style.borderRadius = '5px';
 
-      // Determinar si ganó o perdió dinero neto
       const profitLossColor = stats.profitLoss >= 0 ? '#28a745' : '#dc3545';
 
       statDiv.innerHTML = `
@@ -306,7 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
       statsContent.appendChild(statDiv);
     }
 
-    // Mostrar el panel de estadísticas
     statsArea.style.display = 'block';
   });
 
@@ -314,23 +207,9 @@ document.addEventListener('DOMContentLoaded', () => {
     statsArea.style.display = 'none';
   });
 
-  /**
-   * Evento: Pulsar "Reiniciar Estadísticas"
-   * 
-   * Permite a los jugadores empezar de cero:
-   * 1. Limpia todos los datos del localStorage
-   * 2. Resetea balance a 1000 para cada jugador
-   * 3. Resetea contador de wins/losses/rounds
-   * 4. Pide confirmación antes de ejecutar
-   * 
-   * Útil cuando:
-   * - Un jugador se queda en quiebra (balance <= 0)
-   * - Alguien quiere empezar una nueva sesión desde cero
-   */
   const resetStatsButton = document.getElementById('reset-stats-button')!;
 
   resetStatsButton.addEventListener('click', () => {
-    // Pedir confirmación para evitar accidentes
     const confirmed = confirm(
       '⚠️ ¿Estás seguro de que quieres REINICIAR todas las estadísticas?\n\n' +
       'Esto hará que todos los jugadores vuelvan a tener $1000 y se borrarán todos los datos acumulados.\n\n' +
@@ -342,35 +221,27 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Reiniciar cada jugador
     const playerNames = ["Jugador 1", "Jugador 2"];
     for (const name of playerNames) {
       statsManager.resetPlayer(name, 1000);
       console.log(`✓ ${name} ha sido reiniciado a $1000`);
     }
 
-    // Sincronizar el estado en memoria (game) con lo reiniciado en localStorage
-    // para que el cambio sea visible inmediatamente en la UI.
     for (const name of playerNames) {
       const stats = statsManager.getOrCreatePlayer(name);
       const player = game.playerList.find(p => p.id === name);
       if (player) {
         player.balance = stats.balance;
-        // también actualizar preGameBalances para evitar cálculos incorrectos
         preGameBalances[player.id] = stats.balance;
       }
     }
 
-    // Mostrar confirmación y refrescar la UI
     board.showMessage('✓ Estadísticas reiniciadas. Presiona "Nuevo Juego" para comenzar.');
 
-    // Ocultar el panel de estadísticas si estaba abierto
     statsArea.style.display = 'none';
 
-    // Forzar re-render de la UI para que se vean los nuevos saldos
     updateUI();
 
-    // Log en consola para verificación
     console.log('Estadísticas reiniciadas para todos los jugadores');
   });
 });
